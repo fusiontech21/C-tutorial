@@ -1,6 +1,6 @@
 # The C Programming Language — A Real Tutorial
 
-> *Written for people who actually want to understand C, not just copy-paste until something compiles.*
+> *Written for people who actually want to understand C, not just copy & pasting like those shitty youtube tutorials.*
 
 ---
 

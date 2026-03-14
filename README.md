@@ -83,7 +83,7 @@ this installs Clang, which on mac pretends to be gcc. it's fine, works identical
 deadass just use **Zed**. it's fast as hell, written in Rust, has great C support out of the box, and doesn't feel like a corporate product. download it from zed.dev.
 
 if for some reason you can't use Zed:
-- VSCode with the C/C++ extension is solid and free
+- VSCode with the C/C++ extension is solid and free (Zed Is also free btw-)
 - Vim/Neovim if you want to feel like a wizard and spend a week learning keybinds
 - CLion is a full IDE, free for students, overkill for starting out
 

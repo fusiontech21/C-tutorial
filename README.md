@@ -33,7 +33,7 @@
 
 ## Why C Though
 
-fr though — your friend is out here doing "python for beginners day 3" and you're asking about C. different breed.
+actually tho while you're friends are coding stuff in python, your learning C your better than them.
 
 here's the actual answer: C is the language that *runs everything else*. python's interpreter? written in C. the linux kernel powering like 90% of the internet's servers? C. git, the thing you use to push to github? written in C. doom, minecraft's original engine, every OS you've ever touched — C.
 

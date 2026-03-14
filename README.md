@@ -1,6 +1,6 @@
-# C Programming — No Cap, The Complete Guide
+# C Programming —  The Complete Guide
 
-> *stop watching those shitty youtube tutorials trying to learn something bro. read this instead. it covers everything for real.*
+> *stop watching those shitty youtube tutorials trying to learn something bro. read this instead. it covers everything for real like actually everything.*
 
 ---
 

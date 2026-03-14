@@ -1,107 +1,148 @@
-# C Programming —  The Complete Guide
+# C Programming — The Complete Guide (Actually Explained)
 
-> *stop watching those shitty youtube tutorials trying to learn something bro. read this instead. it covers everything for real like actually everything.*
+> *not just syntax. why it works, what's happening underneath, and what breaks when you get it wrong. no skipping.*
 
 ---
 
 ## Table of Contents
 
-1. [Why C Though](#why-c-though)
-2. [Setting Up](#setting-up)
-3. [Your First Program](#your-first-program)
-4. [Variables and Data Types](#variables-and-data-types)
-5. [Operators](#operators)
-6. [Control Flow](#control-flow)
-7. [Functions](#functions)
-8. [Arrays](#arrays)
-9. [Strings](#strings)
-10. [Pointers — yeah this is the one](#pointers)
-11. [Memory Management](#memory-management)
-12. [Structs, Unions, and Enums](#structs-unions-and-enums)
-13. [File I/O](#file-io)
-14. [The Preprocessor](#the-preprocessor)
-15. [Header Files and Multi-File Projects](#header-files-and-multi-file-projects)
-16. [Modern C — C99 through C23](#modern-c)
-17. [Error Handling](#error-handling)
-18. [Bit Manipulation Deep Dive](#bit-manipulation-deep-dive)
-19. [Common Pitfalls](#common-pitfalls)
-20. [Debugging](#debugging)
-21. [Questions](#questions)
-22. [Answers](#answers)
+1. [Why C](#why-c)
+2. [How C Code Becomes a Program](#how-c-becomes-a-program)
+3. [Setting Up](#setting-up)
+4. [Your First Program — every line](#your-first-program)
+5. [Variables and Data Types — the full picture](#variables-and-data-types)
+6. [Operators — all of them](#operators)
+7. [Control Flow](#control-flow)
+8. [Functions — how they actually work](#functions)
+9. [Arrays — memory in a row](#arrays)
+10. [Strings — just arrays with a zero at the end](#strings)
+11. [Pointers — the real thing](#pointers)
+12. [Memory Management — the heap](#memory-management)
+13. [Structs, Unions, and Enums](#structs-unions-and-enums)
+14. [File I/O](#file-io)
+15. [The Preprocessor](#the-preprocessor)
+16. [Header Files and Multi-File Projects](#header-files-and-multi-file-projects)
+17. [Modern C — C99 through C23](#modern-c)
+18. [Undefined Behavior — the scariest part](#undefined-behavior)
+19. [Error Handling](#error-handling)
+20. [Bit Manipulation Deep Dive](#bit-manipulation)
+21. [Common Pitfalls](#common-pitfalls)
+22. [Debugging](#debugging)
+23. [Questions](#questions)
+24. [Answers](#answers)
 
 ---
 
-## Why C Though
+## Why C
 
-actually tho while you're friends are coding stuff in python, your learning C your better than them.
+real talk — why are you learning C when python exists and javascript is everywhere?
 
-here's the actual answer: C is the language that *runs everything else*. python's interpreter? written in C. the linux kernel powering like 90% of the internet's servers? C. git, the thing you use to push to github? written in C. doom, minecraft's original engine, every OS you've ever touched — C.
+here's the honest answer: C is the language that *runs everything else*. python's interpreter is written in C. the linux kernel that powers literally 90% of the internet's servers is C. git, the thing you use to push code? C. sqlite, the most widely deployed database engine in the world? C. every operating system kernel, every browser engine, most compilers, game engines, embedded systems — C.
 
-when you write python or javascript you're sitting on top of like fifteen layers of abstraction hiding what's actually happening. when you write C you're one step above assembly. no garbage collector cleaning up your mess in the background, no virtual machine, no "automatic memory management". it's just you, your code, the compiler, and the CPU.
+when you write python or javascript, you're sitting on top of fifteen layers of abstraction that hide what's actually happening. the language manages memory for you, handles types automatically, and abstracts away the hardware entirely. that's convenient, but it means you don't really understand what your code is doing.
 
-what that means in practice:
-- you'll understand how memory *actually* works — not just "variables store data" but where, why, and what happens when you screw it up
-- every other language will suddenly make more sense once you see what they're hiding
-- pointers will make you feel lost for a week and then click and make you feel unstoppable
-- you can write code that runs on a microcontroller with 2KB of RAM — smaller than your thumbnail
+when you write C, there's almost nothing between you and the machine. no garbage collector cleaning up behind you. no virtual machine. no runtime deciding what types things are. it's your code, the compiler, and the CPU — and that's it.
 
-yeah it's harder than python. the compiler is going to yell at you nonstop at first. but when it clicks, it really clicks. let's go.
+what that actually means:
+- you learn how memory *actually* works. not just "variables store data" but physically where in RAM, how addressing works, what happens when you read the wrong location
+- you understand *why* other languages make certain tradeoffs — garbage collectors exist because manual memory management is hard. reference counting, runtime type systems, bounds checking — all of these are solutions to problems you'll experience firsthand in C
+- pointers will humble you for a week and then make everything click
+- you can write software that runs on a chip with 2KB of RAM and no OS
+
+yeah it's harder than python. the compiler will reject code you swear should work. segfaults will appear with no explanation. but once C clicks, every other language becomes clearer. let's go.
+
+---
+
+## How C Code Becomes a Program
+
+before writing a single line, it's worth understanding what actually happens when you compile. this is stuff most tutorials skip, but it explains why certain errors show up and when.
+
+your `.c` file goes through four distinct stages:
+
+### Stage 1 — Preprocessing
+
+the preprocessor runs first. it's a text-processing tool that handles every line starting with `#`. it knows nothing about C — it just does text manipulation:
+
+- `#include <stdio.h>` → literally copy-pastes the content of `stdio.h` at that line
+- `#define MAX 100` → find-and-replace every occurrence of `MAX` with `100`
+- `#ifdef DEBUG ... #endif` → conditionally include or remove sections of code
+
+the output of preprocessing is still C code, just with all the `#` lines resolved. you can see this output with `gcc -E file.c`.
+
+### Stage 2 — Compilation
+
+the compiler takes the preprocessed C code and converts it to assembly language — the human-readable representation of CPU instructions. this is where type checking happens, where syntax errors are caught, where optimizations are applied.
+
+the output is assembly (`.s` files). you can see this with `gcc -S file.c`.
+
+### Stage 3 — Assembly
+
+the assembler converts assembly code to machine code — the raw binary instructions the CPU actually executes. the output is *object files* (`.o` files). each `.c` file produces one `.o` file.
+
+object files contain compiled code but with *unresolved references* — calls to functions defined in other files (like `printf`) have placeholder addresses.
+
+### Stage 4 — Linking
+
+the linker combines all the `.o` files and resolves the unresolved references. it knows where `printf` is (in the C standard library), fills in the addresses, and produces the final executable.
+
+why does this matter? because error messages tell you which stage failed:
+- "implicit declaration of function" → compilation stage, you forgot an `#include`
+- "undefined reference to function_name" → linking stage, you forgot to compile/link that file
+- "segmentation fault" → runtime, nothing the compiler could catch
 
 ---
 
 ## Setting Up
 
-you need three things: a compiler, an editor, a terminal. that's it.
-
 ### The Compiler
 
-the compiler takes your C code and turns it into machine code the CPU can actually run. two main options: GCC and Clang. both are free, both are great, everything in this guide works on either.
+the compiler turns C code into machine code. GCC and Clang are the two main options — both are free, both work great, all the code in this guide compiles on either.
 
 **Linux:**
 ```bash
 gcc --version
 ```
-already installed 99% of the time. if not:
-```bash
-sudo apt install gcc    # ubuntu/debian
-sudo dnf install gcc    # fedora
-```
+probably already installed. if not: `sudo apt install gcc` (Ubuntu/Debian) or `sudo dnf install gcc` (Fedora).
 
 **Mac:**
 ```bash
 xcode-select --install
 ```
-this installs Clang, which on mac pretends to be gcc. it's fine, works identical for everything here.
+installs Clang, which on mac pretends to be gcc when you type `gcc`. it's fine, identical for our purposes.
 
-**Windows:** three real options:
-- **WSL** (Windows Subsystem for Linux) — runs a full linux terminal inside windows. what most people use, genuinely good
-- **MinGW-w64** — GCC ported to windows natively
-- **Visual Studio** — heavy, microsoft, but works well on windows
+**Windows:** use WSL (Windows Subsystem for Linux). it runs a full Linux environment inside Windows, gives you gcc, everything just works. or MinGW-w64 if you want native Windows gcc.
 
 ### The Editor
 
-deadass just use **Zed**. it's fast as hell, written in Rust, has great C support out of the box, and doesn't feel like a corporate product. download it from zed.dev.
+use **Zed** — zed.dev. it's fast, written in Rust, has solid C support, and feels like someone actually cared about the experience. open a `.c` file and it works.
 
-if for some reason you can't use Zed:
-- VSCode with the C/C++ extension is solid and free (Zed Is also free btw-)
-- Vim/Neovim if you want to feel like a wizard and spend a week learning keybinds
-- CLion is a full IDE, free for students, overkill for starting out
+VSCode with the C/C++ extension from Microsoft is also solid. Vim if you want to feel like a hacker. CLion if you want a full IDE.
 
 ### Compiling and Running
 
-make a file called `hello.c`, then in your terminal:
-
 ```bash
-gcc hello.c -o hello     # compile — -o names the output file
-./hello                  # run (linux/mac)
-hello.exe                # run (windows)
+gcc hello.c -o hello      # compile — -o specifies the output filename
+./hello                   # run on Linux/Mac
+hello.exe                 # run on Windows
 ```
 
 **always compile with these flags:**
 ```bash
-gcc -Wall -Wextra -std=c17 -o hello hello.c
+gcc -Wall -Wextra -std=c17 -g -o hello hello.c
 ```
-`-Wall` and `-Wextra` turn on extra warnings. `-std=c17` uses the 2017 C standard. these flags will catch bugs before they turn into hour-long debugging sessions. just make them a habit now.
+
+what each flag does:
+- `-Wall` — enables a large set of warnings. without this, the compiler silently ignores a lot of potential bugs
+- `-Wextra` — enables additional warnings beyond -Wall
+- `-std=c17` — use the C17 standard (2017). without specifying, you might get old defaults
+- `-g` — include debug information so tools like gdb can show you line numbers
+
+during development, also add:
+```bash
+gcc -Wall -Wextra -std=c17 -g -fsanitize=address,undefined -o hello hello.c
+```
+
+`-fsanitize=address,undefined` catches memory bugs and undefined behavior at runtime. it's slow but absolutely invaluable for finding bugs. use it while developing, remove it for production builds.
 
 ---
 
@@ -116,123 +157,250 @@ int main(void) {
 }
 ```
 
-looks simple. let's actually break it down because "just trust the code" gets you nowhere in C.
+this is five lines but each one is doing something specific worth understanding.
 
-**`#include <stdio.h>`**
-before your code compiles, a preprocessor runs over it first and handles all lines starting with `#`. `stdio.h` is the standard input/output header — it contains declarations for functions like `printf` and `scanf`. without this the compiler literally doesn't know what `printf` is. it will refuse to compile. include it.
+### `#include <stdio.h>`
 
-**`int main(void)`**
-every C program starts at `main`. the `int` means it returns an integer to the operating system. `void` in the parentheses means it takes no arguments. writing `int main()` instead works fine in practice too.
+`stdio.h` stands for "standard input/output". it's a *header file* — a text file containing declarations (descriptions of what functions exist, what arguments they take, what they return).
 
-**`printf("Hello, world!\n");`**
-printf = "print formatted". the `\n` is a newline character — without it your terminal prompt appears on the same line as your output and it looks broken.
+`printf` is declared in `stdio.h`. without this include, the compiler doesn't know what `printf` is. you'd get something like "implicit declaration of function printf" — the compiler is saying "you're calling something but I have no idea what it looks like".
 
-**`return 0;`**
-returning 0 from main tells the OS "hey, everything worked fine". non-zero means something went wrong. shell scripts and CI pipelines check this. get used to returning 0 on success.
+the angle brackets `<stdio.h>` mean "look for this in the system's include directories". quotes `"myfile.h"` mean "look in the current directory first, then system directories". for standard library headers, always use angle brackets.
+
+### `int main(void)`
+
+`main` is special — it's where program execution begins. every C program has exactly one `main`.
+
+`int` before it means `main` returns an integer. this integer is the *exit code* — the value returned to the operating system when your program finishes. exit code 0 conventionally means success. any non-zero value signals some kind of failure. shell scripts, CI pipelines, and other programs that run yours can check this value.
+
+`void` in the parameter list means "takes no arguments". you can also write `int main(int argc, char *argv[])` to receive command-line arguments — more on that later.
+
+### `printf("Hello, world!\n")`
+
+`printf` = "print formatted". it sends text to stdout (standard output — your terminal by default).
+
+the argument is a *string literal* — a sequence of characters enclosed in double quotes. string literals in C are arrays of characters stored in read-only memory.
+
+`\n` is an *escape sequence* — a way to represent characters that aren't printable or are hard to type. `\n` is newline (ASCII value 10). without it, your terminal prompt appears right after your output on the same line. other common escape sequences: `\t` (tab), `\\` (backslash), `\"` (double quote inside a string), `\0` (null character).
+
+the semicolon `;` ends the statement. C ignores whitespace and newlines — the semicolon is how it knows the statement is done.
+
+### `return 0`
+
+returns 0 to the operating system — signals success. try returning 1 and then running `echo $?` right after — you'll see the exit code.
 
 ---
 
 ## Variables and Data Types
 
-C is statically typed. every variable has a type set at compile time and it doesn't change. you can't do the python thing where something starts as an integer and becomes a string. the compiler will just refuse.
+### What a Variable Actually Is
+
+a variable is a named region of memory. when you write `int x = 5`, you're asking the system to reserve some bytes of memory, name that region `x`, and store the value 5 in those bytes.
+
+every type has a size — a number of bytes it occupies. the size determines: how much memory it takes, what values fit in it, and how the CPU interprets the raw bits.
 
 ### The Basic Types
 
 ```c
-int age = 17;                    // whole number, usually 4 bytes
-float price = 9.99f;             // decimal, 4 bytes, ~7 digits precision
-double pi = 3.14159265358979;    // better decimal, 8 bytes, ~15 digits precision
-char letter = 'A';               // single character, 1 byte
+int age = 25;                     // whole number
+float temperature = 98.6f;        // decimal, ~7 digits precision
+double pi = 3.14159265358979;     // decimal, ~15 digits precision
+char letter = 'A';                // single character — actually just a small integer
 ```
 
-stuff they don't tell you upfront:
+**`int`** — the default integer type. on virtually all modern computers it's 32 bits (4 bytes). can hold values from -2,147,483,648 to 2,147,483,647. the exact size isn't guaranteed by the C standard (it's at least 16 bits), but in practice you can count on 32 bits on any modern system.
 
-**`int` size isn't guaranteed.** it's *at least* 16 bits but on basically every modern computer it's 32 bits. if you need exact sizes (common in systems work), use `<stdint.h>`:
+**`float` vs `double`** — both store decimal numbers, but they differ in precision. float is 32 bits with about 7 significant decimal digits. double is 64 bits with about 15. always prefer `double` unless you have a specific reason for float (memory constraints, GPU code, etc.). most math functions return double. mixing float and double causes accidental precision loss.
+
+why not just have one decimal type? precision costs memory and computation. for embedded systems or graphics where you're crunching millions of numbers, float's lower precision is an acceptable tradeoff for the lower cost.
+
+**`char`** — nominally a "character type" but it's really just a small integer (8 bits, -128 to 127 for signed, 0-255 for unsigned). it stores the ASCII code of the character. `'A'` is literally the integer 65. `'a'` is 97. `'0'` is 48. `'\n'` is 10. you can do arithmetic on chars and it works exactly like integer arithmetic.
+
+```c
+char c = 'A';
+c = c + 1;   // c is now 'B' (66) — uppercase letter arithmetic
+c = c + 32;  // c is now 'b' — lowercase. difference between cases is exactly 32 in ASCII
+```
+
+### Integer Type Variants
+
+```c
+short int x = 1000;     // at least 16 bits, usually 16
+long int y = 100000L;   // at least 32 bits, often 64 on modern systems
+long long z = 1LL << 40; // at least 64 bits, always 64 in practice
+
+unsigned int u = 4294967295U;     // no negative numbers, 0 to ~4.2 billion
+unsigned short s = 65535;
+unsigned long long big = 18446744073709551615ULL;
+```
+
+the `U`, `L`, `LL`, `ULL` suffixes tell the compiler what type to treat the literal as. `1LL << 40` without `LL` would try to left-shift an `int`, which overflows. with `LL`, it's a `long long`, which handles it.
+
+**why unsigned?** when your value can never logically be negative (array indices, sizes, memory addresses), use unsigned. it also doubles the positive range. the tradeoff: unsigned arithmetic wraps around silently. `0u - 1` gives 4,294,967,295 — that can surprise you.
+
+### Exact-Width Types from `<stdint.h>`
+
+the problem with `int` being "at least 16 bits" — you can't write portable code that depends on exact sizes. `<stdint.h>` (added in C99) solves this:
 
 ```c
 #include <stdint.h>
 
-int8_t   tiny   = 127;                     // exactly 8 bits, signed
-uint8_t  ubyte  = 255;                     // exactly 8 bits, unsigned
-int16_t  small  = 32767;                   // exactly 16 bits
-int32_t  normal = 2147483647;              // exactly 32 bits
-int64_t  big    = 9223372036854775807LL;   // exactly 64 bits
-uint64_t ubig   = 18446744073709551615ULL; // 64 bits unsigned
+int8_t   tiny   = 127;                      // exactly 8 bits, signed
+uint8_t  ubyte  = 255;                      // exactly 8 bits, unsigned
+int16_t  small  = 32767;                    // exactly 16 bits, signed
+uint16_t ushort = 65535;                    // exactly 16 bits, unsigned
+int32_t  normal = 2147483647;               // exactly 32 bits, signed
+uint32_t u32    = 4294967295U;              // exactly 32 bits, unsigned
+int64_t  big    = 9223372036854775807LL;    // exactly 64 bits, signed
+uint64_t u64    = 18446744073709551615ULL;  // exactly 64 bits, unsigned
 ```
 
-the `LL` suffix means "treat this as long long". `ULL` is "unsigned long long". without them the compiler might read a big number as a smaller type and silently overflow it.
+use these whenever you're doing anything that depends on exact sizes: binary file formats, network protocols, hardware registers, cryptography. for general integer math where you just need "a reasonably sized integer", `int` is fine.
 
-**`char` is secretly an integer.** it stores the ASCII code of the character. `'A'` is 65, `'a'` is 97, `'0'` is 48, `'\n'` is 10. you can do math on chars:
-
+also useful from `<stdint.h>`:
 ```c
-char c = 'a';
-c = c - 32;   // 97 - 32 = 65 = 'A' — that's how you uppercase in C
+intptr_t  p = (intptr_t)some_pointer;   // integer big enough to hold a pointer
+uintptr_t up = (uintptr_t)ptr;          // unsigned version
+size_t    s = sizeof(int);              // unsigned type for sizes and indices
+ptrdiff_t d = ptr2 - ptr1;             // signed type for pointer differences
 ```
 
-**signed vs unsigned:**
+### `size_t` — the index type
+
+`size_t` is the unsigned integer type that the system uses for object sizes and array indices. it's big enough to hold the size of any object in memory. on a 64-bit system it's 64 bits. on a 32-bit system it's 32 bits.
+
+use `size_t` for:
+- loop counters when iterating over arrays
+- function return values that represent counts or sizes
+- anything that `sizeof` returns (it returns `size_t`)
+
 ```c
-int x = -5;            // signed: negative allowed (-2.1B to +2.1B)
-unsigned int y = 200;  // unsigned: no negatives, 0 to 4.2B
+size_t len = strlen(str);   // strlen returns size_t
+for (size_t i = 0; i < len; i++) {
+    printf("%c", str[i]);
+}
+printf("size: %zu\n", len);  // %zu is the format specifier for size_t
 ```
 
-if you assign -1 to an unsigned int you get 4,294,967,295. it wraps around because of how binary works. this is called unsigned overflow and it's *defined* behavior in C. signed overflow however is undefined — more on that later.
+### How Numbers are Stored — Binary Basics
 
-**`size_t`** — this type shows up everywhere and confuses people. it's the unsigned type used for sizes and counts. guaranteed big enough to hold any memory size. use it when indexing arrays or measuring sizes:
-
-```c
-#include <stddef.h>  // or just use stdio.h
-
-size_t length = 100;
-printf("size: %zu\n", length);  // %zu for size_t
+every value in C is ultimately stored as bits. an `int32_t` with value 5 is stored as:
+```
+00000000 00000000 00000000 00000101
 ```
 
-### Always Initialize Your Variables
+**two's complement** — how negative integers are represented. to negate a number: flip all bits, then add 1.
 
-```c
-int x;        // DECLARED — but has garbage inside. whatever bytes were there before
-int y = 10;   // DECLARED and INITIALIZED — safe
+```
+5  = 00000000 00000000 00000000 00000101
+    flip bits: 11111111 11111111 11111111 11111010
+    add 1:     11111111 11111111 11111111 11111011 = -5
 ```
 
-unlike python or java, C does NOT zero out variables for you (except globals and statics — explained later). `int x;` followed by reading `x` is undefined behavior. it could be 0, could be 847261, could literally be anything.
+why two's complement? because addition works the same way for both positive and negative numbers. `5 + (-5)` in two's complement naturally gives zero with a carry-out that gets discarded. it's elegant hardware-wise.
 
-**always initialize your variables.** seriously, this one habit will save you from so many hours of debugging garbage values.
+consequence: `INT_MAX + 1` wraps to `INT_MIN` in two's complement binary. but in C, *signed integer overflow is undefined behavior* — the C standard explicitly doesn't guarantee what happens. in practice it wraps on almost every real system, but you can't rely on it. **never intentionally overflow a signed integer.**
 
-### Scope
-
-variables live within the curly braces they were born in:
+**floating point** — floats and doubles use IEEE 754 format. a 32-bit float has: 1 sign bit, 8 exponent bits, 23 mantissa bits. this is why `0.1 + 0.2 != 0.3` in floating point — these numbers can't be represented exactly in binary, so they're approximated.
 
 ```c
-int x = 10;   // global — visible everywhere in this file
+printf("%.20f\n", 0.1);   // 0.10000000000000000555... not exactly 0.1
+```
 
-int main(void) {
-    int y = 20;  // local to main
-    
-    {
-        int z = 30;  // only inside these braces
-        printf("%d %d %d\n", x, y, z);  // fine here
-    }
-    
-    printf("%d\n", z);  // COMPILER ERROR — z doesn't exist here
-    return 0;
+never compare floats with `==` directly:
+```c
+double a = 0.1 + 0.2;
+if (a == 0.3) { ... }               // might fail
+if (fabs(a - 0.3) < 1e-9) { ... }   // correct — check if they're close enough
+```
+
+### Declaration vs Initialization
+
+```c
+int x;        // declared — memory reserved, contents are GARBAGE
+int y = 10;   // declared AND initialized — safe to use
+```
+
+this is critical. unlike python or Java, C does NOT zero-initialize local variables. when you declare `int x;`, the memory for x already existed as part of the stack frame. whatever bytes were there before — from a previous function call, from previous data — are still there. reading an uninitialized variable is undefined behavior. the value could be 0, could be -858993460 (a common "uninitialized" pattern debuggers use), could be anything.
+
+**global and static variables are zero-initialized** — the OS zeroes out the data segment before your program starts. so global `int x;` starts as 0. local `int x;` starts as garbage.
+
+```c
+int global_x;   // 0 at program start — zero-initialized
+
+void foo(void) {
+    int local_x;        // GARBAGE — uninitialized
+    static int static_x; // 0 — static local variables are zero-initialized
 }
 ```
 
-### Type Casting
+**always initialize local variables.** make it a habit. `int x = 0;` over `int x;`.
 
-C does some conversions automatically, sometimes silently dropping data:
+### Scope and Lifetime
+
+**scope** — where in the code a variable is visible.
+
+**lifetime** — how long the variable exists in memory.
+
+```c
+int global = 10;   // scope: entire file. lifetime: entire program.
+
+void foo(void) {
+    int local = 20;  // scope: this function. lifetime: while foo is executing.
+
+    {
+        int block = 30;  // scope: this block only. lifetime: while in the block.
+        printf("%d %d %d\n", global, local, block);  // all visible
+    }
+
+    printf("%d\n", block);  // COMPILE ERROR — block is out of scope
+}
+```
+
+when a function is called, space for its local variables is allocated on the *call stack*. when the function returns, that stack space is reclaimed — the variables are gone. this is why returning a pointer to a local variable is a serious bug.
+
+### Type Conversions
+
+**implicit conversion** — C automatically converts between types in certain situations:
 
 ```c
 int x = 5;
-double y = x;   // implicit, fine — no data lost
+double y = x;       // int to double — fine, no data lost
 
 double d = 3.99;
-int i = d;      // implicit — silently truncates to 3. no warning by default.
+int i = d;          // double to int — TRUNCATES to 3, no warning by default
+                    // not rounding — truncation toward zero
+
+unsigned int u = -1;  // -1 converted to unsigned — wraps to UINT_MAX
+                      // this is valid/defined but usually a bug
 ```
 
-explicit cast:
+**implicit conversion in expressions** — when you use different types in an expression, C promotes the "smaller" type to the "larger" one before the operation:
+
 ```c
-int a = 5, b = 2;
-double result = (double)a / b;  // cast a to double BEFORE dividing
+int a = 5;
+double b = 2.0;
+double result = a / b;   // a is converted to double before dividing — 2.5
+
+int x = 5, y = 2;
+double r = x / y;    // WRONG — both ints, integer division happens first (gives 2),
+                     // THEN 2 is converted to 2.0 — too late
+double r = (double)x / y;   // correct — cast first, then divide
+```
+
+**explicit cast** — force a conversion:
+```c
+double d = 3.7;
+int i = (int)d;     // explicit truncation — i = 3, clearly intentional
+printf("%d\n", (int)(3.14 * 100));  // 314
+```
+
+**integer promotions** — char and short are automatically promoted to int in expressions. this is why `char + char` actually computes as `int + int`:
+
+```c
+char a = 200, b = 100;
+int result = a + b;    // both promoted to int before addition
+                       // 200 + 100 = 300 — fits in int, no overflow
 ```
 
 ---
@@ -243,130 +411,269 @@ double result = (double)a / b;  // cast a to double BEFORE dividing
 
 ```c
 int a = 10, b = 3;
-a + b   // 13
-a - b   // 7
-a * b   // 30
-a / b   // 3  ← integer division, decimal gets THROWN AWAY
-a % b   // 1  ← modulo (remainder after division)
+
+a + b    // 13 — addition
+a - b    // 7  — subtraction
+a * b    // 30 — multiplication
+a / b    // 3  — INTEGER DIVISION — decimal part truncated toward zero
+a % b    // 1  — modulo — remainder after integer division
 ```
 
-integer division is where people trip up constantly. `10 / 3` in C is `3`. not `3.333`. to get the real result, at least one side needs to be a float:
+**integer division** is the big one. `10 / 3` in C is `3`, not `3.333`. the rule is simple: when both operands are integers, the result is an integer, and the fractional part is discarded (truncated toward zero, so `-7 / 2` is `-3` not `-4`).
+
+to get decimal division, at least one operand must be a floating-point type:
 
 ```c
-(double)a / b    // 3.333... — cast before dividing
-10.0 / 3         // 3.333... — 10.0 is a double literal
+10.0 / 3      // 3.333... — 10.0 is a double literal
+(double)10 / 3  // 3.333... — cast before dividing
+10 / 3.0      // 3.333... — 3.0 is a double literal
 ```
 
-useful modulo tricks:
+**modulo** is the remainder after division. `10 % 3` = 1 because `10 = 3*3 + 1`. useful patterns:
+
 ```c
-n % 2 == 0      // is n even?
-n % 10          // last digit of n
-index % size    // wrap around an array (circular buffer pattern)
+n % 2 == 0          // is n even? (remainder when divided by 2 is 0)
+n % 10              // last digit of n
+(n + 1) % size      // next index with wraparound (circular buffer)
+n % k               // cycle through 0, 1, 2, ..., k-1
 ```
 
-### Assignment Shorthand
+modulo with negative numbers: in C99+, the result has the sign of the dividend. `-7 % 3` is `-1` (not `2`). if you need a guaranteed non-negative result: `((n % k) + k) % k`.
+
+**operator precedence** — `*`, `/`, `%` bind tighter than `+`, `-`. when in doubt, use parentheses. `2 + 3 * 4` is `14`, not `20`.
+
+### Assignment and Shorthand
 
 ```c
+x = 5;     // assignment — not comparison
+
 x += 5;    // x = x + 5
 x -= 3;    // x = x - 3
 x *= 2;    // x = x * 2
 x /= 4;    // x = x / 4
 x %= 7;    // x = x % 7
-x <<= 1;   // x = x << 1
-x >>= 1;   // x = x >> 1
-x &= 0xFF; // x = x & 0xFF
-x |= 0x01; // x = x | 0x01
-x ^= mask; // x = x ^ mask
 ```
+
+these are all equivalent — just shorthand. `x += 5` is identical to `x = x + 5`.
+
+assignment is an *expression* in C — it evaluates to the value being assigned. this enables patterns like:
+
+```c
+int c;
+while ((c = fgetc(fp)) != EOF) {  // assign AND check in one expression
+    putchar(c);
+}
+```
+
+this is idiomatic C. `c = fgetc(fp)` reads a character AND assigns it to `c`. the `!= EOF` then checks the assigned value. the parentheses around `c = fgetc(fp)` are required — without them, the operator precedence would make it `c = (fgetc(fp) != EOF)` which assigns 0 or 1, not the character.
 
 ### Increment and Decrement
 
 ```c
-x++;   // post-increment: returns current value, THEN adds 1
-++x;   // pre-increment: adds 1, THEN returns new value
-x--;
---x;
+x++;   // post-increment: evaluate to current value of x, THEN add 1
+++x;   // pre-increment: add 1 to x, THEN evaluate to the new value
+x--;   // post-decrement
+--x;   // pre-decrement
 ```
 
-used alone on their own line, identical. difference only shows up inside a bigger expression:
+when used as a standalone statement (`x++;` on its own line), pre and post are identical — the result of the expression is discarded. the difference only matters when the expression value is used:
 
 ```c
 int x = 5;
-int a = x++;   // a = 5, then x = 6
-int b = ++x;   // x = 7, then b = 7
+int a = x++;   // a = 5 (old value), then x = 6
+int b = ++x;   // x = 7 first, then b = 7
+
+// x++ is implemented as:
+// int temp = x;
+// x = x + 1;
+// the expression value is temp (old value)
+
+// ++x is implemented as:
+// x = x + 1;
+// the expression value is x (new value)
 ```
 
-### Comparison and Logic
+**never do multiple increments in the same expression:**
+```c
+int i = 0;
+printf("%d %d\n", i++, i++);   // UNDEFINED BEHAVIOR
+// the order of argument evaluation is unspecified
+```
+
+### Comparison Operators
 
 ```c
-a == b   // equal (TWO equals signs)
+a == b   // equal — TWO equals signs, not one
 a != b   // not equal
-a > b    a < b    a >= b    a <= b
-
-&&  // AND
-||  // OR
-!   // NOT
+a > b    // greater than
+a < b    // less than
+a >= b   // greater than or equal
+a <= b   // less than or equal
 ```
 
-**the classic bug that bites everyone at least once:**
+these return `1` for true and `0` for false. C doesn't have a native boolean type before C99 (when `<stdbool.h>` was added). in C, *any non-zero value is true, zero is false*. this means:
+
 ```c
-if (x = 5) { }    // assigns 5 to x, always true — NOT a comparison
-if (x == 5) { }   // actual comparison
+if (5) { ... }        // always executes — 5 is non-zero (truthy)
+if (0) { ... }        // never executes — 0 is falsy
+if (ptr) { ... }      // executes if ptr is non-NULL — idiomatic null check
+if (!ptr) { ... }     // executes if ptr is NULL
 ```
 
-`-Wall` catches this. short-circuit evaluation is your friend:
+**THE classic bug — `=` vs `==`:**
 ```c
-if (ptr != NULL && ptr->value > 5) { ... }
-// if ptr is NULL, second check NEVER RUNS — no crash
+if (x = 5) { ... }    // ASSIGNS 5 to x, then checks if 5 is non-zero (always true)
+if (x == 5) { ... }   // COMPARES x to 5
+```
+
+`-Wall` catches this and warns you. some people write comparisons as `5 == x` (Yoda conditions) so if they accidentally write `5 = x`, the compiler rejects it (can't assign to a literal). your call, but at minimum use `-Wall`.
+
+### Logical Operators
+
+```c
+&&   // AND — true only if both sides are non-zero
+||   // OR  — true if at least one side is non-zero
+!    // NOT — flips truth value. !0 = 1, !5 = 0, !!5 = 1
+```
+
+**short-circuit evaluation** — this is not just trivia, it's an important feature:
+
+for `&&`: if the left side is false (zero), the right side is *never evaluated*.
+for `||`: if the left side is true (non-zero), the right side is *never evaluated*.
+
+```c
+// safe null pointer check
+if (ptr != NULL && ptr->value > 5) {
+    // if ptr is NULL, second check never runs
+    // so we can't crash dereferencing NULL here
+}
+
+// safe array access
+if (i < len && arr[i] == target) {
+    // if i >= len, arr[i] is never evaluated
+    // so no out-of-bounds access
+}
+
+// common C idiom — open file only if path is not null
+if (path && (fp = fopen(path, "r"))) {
+    // both conditions true
+}
 ```
 
 ### Bitwise Operators
 
-operate on individual bits. super important for hardware, networking, and systems code:
+these operate on individual bits. not just for tricks — they're fundamental for systems programming, flags, hardware interfaces, network protocols.
 
 ```c
-&    // AND — 1 only if both bits are 1
-|    // OR  — 1 if either bit is 1
-^    // XOR — 1 if bits are different
-~    // NOT — flips every bit
-<<   // left shift  (multiply by 2^n)
->>   // right shift (divide by 2^n)
+&    // AND — each bit is 1 only if both corresponding bits are 1
+|    // OR  — each bit is 1 if either corresponding bit is 1
+^    // XOR — each bit is 1 if the corresponding bits are DIFFERENT
+~    // NOT — flip every bit (unary operator)
+<<   // left shift — shift all bits left by n positions
+>>   // right shift — shift all bits right by n positions
 ```
 
-```c
-5 << 1   // 10 — shift left = multiply by 2
-5 << 3   // 40 — shift left 3 = multiply by 8
-40 >> 2  // 10 — shift right 2 = divide by 4
+concrete example with 8-bit numbers:
+
+```
+a = 0b10110100  (180 decimal)
+b = 0b11001101  (205 decimal)
+
+a & b = 0b10000100  (132) — only bits that are 1 in BOTH
+a | b = 0b11111101  (253) — bits that are 1 in EITHER
+a ^ b = 0b01111001  (121) — bits that are 1 in one but NOT both
+~a    = 0b01001011  (75)  — every bit flipped
+
+a << 2 = 0b11010000 (208) — shifted left 2 positions (multiply by 4)
+a >> 1 = 0b01011010 (90)  — shifted right 1 position (divide by 2)
 ```
 
-the flag pattern — storing multiple booleans in one integer (you'll see this everywhere in real C):
+**left shift = multiply by 2ⁿ.** `x << 3` = `x * 8`. this is genuinely faster than multiplication on some hardware, and compilers often use it internally.
+
+**right shift = divide by 2ⁿ (integer).** `x >> 2` = `x / 4`. for unsigned integers, this is well-defined. for signed negative integers, whether the sign bit is preserved (arithmetic shift) or zero-filled (logical shift) is implementation-defined — avoid right-shifting negative values.
+
+**the flag pattern** — storing multiple boolean values in a single integer:
+
 ```c
-#define PERM_READ    (1 << 0)   // 001
-#define PERM_WRITE   (1 << 1)   // 010
-#define PERM_EXEC    (1 << 2)   // 100
+// define each flag as a power of 2 (one bit set)
+#define FLAG_READ    (1 << 0)   // 0b00000001 = 1
+#define FLAG_WRITE   (1 << 1)   // 0b00000010 = 2
+#define FLAG_EXEC    (1 << 2)   // 0b00000100 = 4
+#define FLAG_HIDDEN  (1 << 3)   // 0b00001000 = 8
 
-int perms = 0;
+int permissions = 0;
 
-perms |= PERM_READ;                  // set read
-perms |= PERM_WRITE;                 // set write
-perms &= ~PERM_EXEC;                 // clear exec
-int can_read = perms & PERM_READ;    // check read
-perms ^= PERM_WRITE;                 // toggle write
+// SET a flag — use OR
+permissions |= FLAG_READ;    // turn on bit 0
+permissions |= FLAG_WRITE;   // turn on bit 1
+// permissions = 0b00000011 = 3
+
+// CHECK a flag — use AND
+if (permissions & FLAG_READ) {
+    printf("can read\n");
+}
+
+// CLEAR a flag — use AND with NOT
+permissions &= ~FLAG_WRITE;  // ~FLAG_WRITE = 0b11111101
+                              // AND keeps all bits EXCEPT bit 1
+// permissions = 0b00000001 = 1
+
+// TOGGLE a flag — use XOR
+permissions ^= FLAG_EXEC;    // flip bit 2
 ```
 
-### sizeof
+this pattern is everywhere in C: linux file permissions, network socket options, hardware control registers, window manager flags.
 
-technically an operator, not a function. gives you the size in bytes of a type or variable at compile time:
+### The sizeof Operator
+
+`sizeof` is a compile-time operator (not a function) that returns the size in bytes of a type or expression:
 
 ```c
-sizeof(int)        // 4 usually
-sizeof(double)     // 8
-sizeof(char)       // always 1
-sizeof(void*)      // 4 on 32-bit, 8 on 64-bit
+sizeof(int)           // 4 on most systems
+sizeof(double)        // 8
+sizeof(char)          // always 1, by definition
+sizeof(void*)         // 4 on 32-bit systems, 8 on 64-bit
 
 int arr[10];
-sizeof(arr)                    // 40
-sizeof(arr) / sizeof(arr[0])   // 10 — number of elements
+sizeof(arr)           // 40 (10 * sizeof(int))
+sizeof(arr[0])        // 4
+sizeof(arr) / sizeof(arr[0])  // 10 — number of elements
+
+// sizeof doesn't evaluate its argument
+int x = 5;
+sizeof(x++)           // 4 — x is NOT incremented, sizeof never executes the expression
+```
+
+`sizeof` returns `size_t`. use `%zu` to print it:
+```c
+printf("int is %zu bytes\n", sizeof(int));
+```
+
+### The Ternary Operator
+
+```c
+int max = (a > b) ? a : b;
+// equivalent to:
+// int max;
+// if (a > b) max = a;
+// else max = b;
+```
+
+syntax: `condition ? value_if_true : value_if_false`. good for simple conditional assignments. don't nest them — it gets unreadable fast.
+
+### The Comma Operator
+
+the comma `,` is an actual operator — it evaluates both expressions left to right and returns the value of the right one:
+
+```c
+int x = (5, 10);  // x = 10 — 5 is evaluated and discarded
+```
+
+mainly used in for loop headers:
+```c
+for (int i = 0, j = 10; i < j; i++, j--) {
+    // initialize multiple variables, update multiple variables
+}
 ```
 
 ---
@@ -389,148 +696,301 @@ if (score >= 90) {
 }
 ```
 
-curly braces are technically optional for single statements. use them anyway. apple had a major SSL security vulnerability called "goto fail" that happened partly because of a missing curly brace. just use them bro.
+the condition can be any expression — if it evaluates to non-zero, the block executes.
 
-### Ternary
+curly braces are technically optional for single statements. don't skip them. apple's "goto fail" SSL bug (2014) was a security vulnerability that allowed bypassing certificate verification. the bug was a duplicated `goto fail;` line without braces:
 
 ```c
-int max = (a > b) ? a : b;
-// same as if/else but in one line
+if ((err = SSLHashSHA1.update(&hashCtx, &signedParams)) != 0)
+    goto fail;
+    goto fail;   // always executes — even when the if is false
 ```
 
-fine for simple stuff. nesting ternaries inside each other is just making your future self suffer.
+the second `goto fail` was always reached. always. use braces.
 
 ### switch
 
 ```c
+int day = 3;
+
 switch (day) {
-    case 1: printf("Monday\n");    break;
-    case 2: printf("Tuesday\n");   break;
-    case 3: printf("Wednesday\n"); break;
-    default: printf("Weekend\n");  break;
+    case 1:
+        printf("Monday\n");
+        break;
+    case 2:
+        printf("Tuesday\n");
+        break;
+    case 3:
+        printf("Wednesday\n");
+        break;
+    default:
+        printf("Other\n");
+        break;
 }
 ```
 
-**don't forget `break`**. without it, code falls through into the next case — sometimes useful, usually a bug. only works with integers/chars, not strings or floats.
+**how switch actually works:** unlike other languages, switch doesn't do "match one case and run it". it *jumps* to the matching case and then runs everything until either a `break` or the end of the switch. this is called fall-through.
 
-### while / do-while / for
+fall-through is sometimes intentional:
+```c
+switch (day) {
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+        printf("weekday\n");
+        break;    // all five cases fall through to here
+    case 6:
+    case 7:
+        printf("weekend\n");
+        break;
+}
+```
+
+switch only works with integer types (including char and enum). you can't switch on a float or a string.
+
+**switch vs if-else:** switch compiles to a *jump table* when the cases are dense integers — O(1) lookup regardless of how many cases. a chain of if-else checks them one by one — O(n). for large numbers of cases on integer values, switch is faster.
+
+### while
 
 ```c
-// while — check first, might never run
-while (i < 10) { i++; }
+int i = 0;
+while (i < 10) {
+    printf("%d\n", i);
+    i++;
+}
+```
 
-// do-while — run first, check after. always runs at least once
+**what's actually happening:** the condition is evaluated. if non-zero, the body executes. then the condition is evaluated again. this repeats until the condition is zero. if the condition is false from the start, the body never runs.
+
+the condition can be any expression:
+```c
+while (1) { ... }       // infinite loop — 1 is always non-zero
+while (ptr) { ... }     // loop while ptr is non-NULL
+while (fgets(buf, sizeof(buf), fp)) { ... }  // loop while fgets succeeds
+```
+
+### do-while
+
+```c
+int input;
 do {
-    printf("Enter a number 1-10: ");
+    printf("Enter a number between 1 and 10: ");
     scanf("%d", &input);
 } while (input < 1 || input > 10);
+```
 
-// for — classic
+body runs first, condition checked after. guaranteed to run at least once. essential for input validation where you need to get the input before you can check it.
+
+### for
+
+```c
 for (int i = 0; i < 10; i++) {
     printf("%d\n", i);
 }
-
-// infinite loops
-for (;;) { }    // most common style in C
-while (1) { }   // also works
 ```
 
-multiple variables in a for loop:
+three parts separated by semicolons:
+1. **initialization** — runs once before the loop starts
+2. **condition** — checked before each iteration, loop continues while non-zero
+3. **update** — runs after each iteration
+
+any part can be empty:
+```c
+int i = 0;
+for (; i < 10; i++) { }   // skip init — i already exists
+
+for (int i = 0; ; i++) {   // skip condition — implicit infinite loop
+    if (i == 10) break;
+}
+
+for (;;) { }               // skip all three — classic infinite loop
+```
+
+multiple variables:
 ```c
 for (int i = 0, j = 9; i < j; i++, j--) {
     printf("i=%d j=%d\n", i, j);
 }
 ```
 
-### break and continue
-
+**what the compiler does with for:** `for (init; cond; update) { body }` is equivalent to:
 ```c
-for (int i = 0; i < 10; i++) {
-    if (i == 5) break;         // exit loop entirely
-    if (i % 2 == 0) continue;  // skip to next iteration
-    printf("%d ", i);           // prints: 1 3
+init;
+while (cond) {
+    body;
+    update;
 }
 ```
 
-these only affect the innermost loop. for nested loops use a flag variable, restructure, or...
+### break and continue
+
+`break` exits the innermost loop or switch immediately:
+```c
+for (int i = 0; i < 100; i++) {
+    if (arr[i] == target) {
+        printf("found at %d\n", i);
+        break;   // stop searching, we found it
+    }
+}
+```
+
+`continue` skips the rest of the current iteration and jumps to the update expression (for loop) or condition check (while/do-while):
+```c
+for (int i = 0; i < 10; i++) {
+    if (i % 2 == 0) continue;   // skip even numbers
+    printf("%d\n", i);           // prints 1, 3, 5, 7, 9
+}
+```
+
+both only affect the *innermost* enclosing loop. to break out of nested loops:
 
 ### goto
 
-yeah it exists. yeah people say avoid it. the one time it's genuinely clean is escaping multiple nested loops:
+`goto` jumps to a labeled statement anywhere in the current function:
 
 ```c
 for (int i = 0; i < 100; i++) {
     for (int j = 0; j < 100; j++) {
         for (int k = 0; k < 100; k++) {
-            if (found_it) goto done;
+            if (found) goto cleanup;
         }
     }
 }
-done:
-    cleanup();
+
+cleanup:
+    free(buffer);
+    fclose(fp);
 ```
 
-the linux kernel uses goto for cleanup all the time. use it when it's the clearest option, not as a default.
+`goto` has a bad reputation from old-style "spaghetti code" where gotos jumped all over the place making programs impossible to follow. in C, there are two legitimate uses:
+1. breaking out of nested loops (shown above)
+2. cleanup/error handling patterns in functions that acquire multiple resources
+
+the linux kernel uses goto extensively for cleanup. don't be afraid of it when it's genuinely the clearest option. just don't use it to jump backward or to jump into blocks.
 
 ---
 
 ## Functions
 
-named, reusable chunks of code. you've already seen `main` — let's write your own.
+### What Functions Actually Are
 
-### Basic Function
+a function is a named sequence of instructions at a specific memory address. when you call a function, the CPU:
+1. pushes the return address onto the call stack
+2. pushes function arguments (or puts them in registers)
+3. jumps to the function's address
+4. the function executes
+5. the return value is put in a register (or on the stack for large values)
+6. the function pops back to the return address and execution continues
+
+understanding this makes several things obvious: why local variables only exist during a function call, why returning a pointer to a local variable is a bug, and why infinite recursion crashes (the stack overflows).
+
+### Basic Function Anatomy
 
 ```c
 #include <stdio.h>
 
-int add(int a, int b);   // prototype — tells compiler this function exists
+// PROTOTYPE — declares the function exists before we define it
+// tells the compiler: "there's a function called add, takes two ints, returns int"
+int add(int a, int b);
 
 int main(void) {
-    printf("%d\n", add(3, 4));   // 7
+    int result = add(3, 4);   // call — jumps to add, gets result back
+    printf("%d\n", result);   // 7
     return 0;
 }
 
-int add(int a, int b) {   // definition — the actual code
+// DEFINITION — the actual code
+int add(int a, int b) {
     return a + b;
 }
 ```
 
-the prototype lets you call functions before defining them. without it every function would need to be above the one that calls it. fine for 20 lines, nightmare for anything real.
+**why prototypes?** C processes files top to bottom. without a prototype, if `main` calls `add` before `add` is defined, the compiler doesn't know what `add` looks like. prototypes tell the compiler in advance. in a multi-file project, prototypes go in header files so any file can use the function.
 
-### void Functions
+### Call Stack — How Function Calls Work in Memory
 
-```c
-void print_separator(void) {
-    printf("-----------------------------\n");
-}
+the call stack is a region of memory that grows and shrinks as functions are called and return. each function call creates a *stack frame* containing:
+- the function's local variables
+- the return address (where to go after the function returns)
+- saved register values
+- function parameters (sometimes)
 
-void greet(const char *name) {
-    printf("yo %s what's good\n", name);
-}
+```
+main's stack frame:
+  result = 7
+  return address = OS
+
+add's stack frame:  ← pushed when add is called
+  a = 3
+  b = 4
+  return address = address in main after the call
 ```
 
-### Parameters Are Copies — this matters a lot
+when `add` returns, its stack frame is popped — that memory is reclaimed. the local variables `a` and `b` are gone.
 
-when you call a function and pass a variable, C copies it. the function works on the copy:
+this is why:
+```c
+int *bad_function(void) {
+    int local = 42;
+    return &local;   // local lives in bad_function's stack frame
+}                    // stack frame is popped here — local is GONE
+                     // the returned pointer points to now-invalid memory
+```
+
+### Parameters Are Copies
+
+when you pass a variable to a function, C makes a *copy*. the function works on its own copy. the original is unchanged:
 
 ```c
-void try_to_change(int x) {
-    x = 999;  // changes the local copy only
+void try_to_modify(int x) {
+    x = 999;    // modifies the local copy only
 }
 
 int n = 5;
-try_to_change(n);
-printf("%d\n", n);  // still 5. nothing changed.
+try_to_modify(n);
+printf("%d\n", n);  // still 5 — the copy was modified, not n
 ```
 
-to actually modify a variable from inside a function, pass a pointer to it (pointers section covers this).
-
-### Multiple Return Values — kinda
-
-C functions return one thing. to "return" multiple values, pass pointers as output parameters:
+this is called *pass by value*. it's a deliberate design choice — functions can't accidentally modify variables in the caller. to intentionally modify a variable, you pass its *address* (a pointer):
 
 ```c
-void min_max(int arr[], int len, int *out_min, int *out_max) {
+void actually_modify(int *p) {
+    *p = 999;    // dereference the pointer, modify the original
+}
+
+int n = 5;
+actually_modify(&n);   // pass n's address
+printf("%d\n", n);     // 999 — actually changed
+```
+
+### Return Values
+
+a function can return one value. the return type must match what's declared:
+
+```c
+int max(int a, int b) {
+    return a > b ? a : b;
+}
+
+double average(double *arr, int len) {
+    double sum = 0;
+    for (int i = 0; i < len; i++) sum += arr[i];
+    return sum / len;
+}
+
+void print_separator(void) {
+    printf("---\n");
+    // no return needed in void function
+    // return; is valid to exit early
+}
+```
+
+to "return" multiple values, use output parameters (pointer parameters where you write the result):
+
+```c
+void minmax(int *arr, int len, int *out_min, int *out_max) {
     *out_min = *out_max = arr[0];
     for (int i = 1; i < len; i++) {
         if (arr[i] < *out_min) *out_min = arr[i];
@@ -538,148 +998,276 @@ void min_max(int arr[], int len, int *out_min, int *out_max) {
     }
 }
 
+int data[] = {3, 1, 4, 1, 5, 9, 2, 6};
 int mn, mx;
-int data[] = {3, 1, 9, 2, 7};
-min_max(data, 5, &mn, &mx);
-printf("min=%d max=%d\n", mn, mx);  // min=1 max=9
+minmax(data, 8, &mn, &mx);
+printf("min=%d max=%d\n", mn, mx);
 ```
 
 ### Recursion
 
-functions can call themselves. needs a base case or it recurses forever and crashes (stack overflow):
+a function can call itself. every recursive function needs a *base case* (a condition that stops the recursion) and a *recursive case* (where it calls itself):
 
 ```c
 int factorial(int n) {
-    if (n <= 1) return 1;           // base case — stop
-    return n * factorial(n - 1);   // recursive step
+    if (n <= 1) return 1;           // base case — stop recursing
+    return n * factorial(n - 1);   // recursive case
 }
 
-// factorial(5) = 5 * 4 * 3 * 2 * 1 = 120
+// factorial(4):
+//   = 4 * factorial(3)
+//   = 4 * (3 * factorial(2))
+//   = 4 * (3 * (2 * factorial(1)))
+//   = 4 * (3 * (2 * 1))
+//   = 4 * (3 * 2)
+//   = 4 * 6
+//   = 24
 ```
 
-elegant but stack space is limited. deep recursion = crash. for huge inputs, use a loop instead.
+each recursive call creates a new stack frame. deep recursion can overflow the stack. `factorial(100000)` would create 100,000 stack frames — stack overflow. for deep recursion, use an iterative approach.
 
-### Static Local Variables
+### static Local Variables
 
-keeps its value between function calls, initialized only once:
+a `static` local variable retains its value between function calls. it's initialized once (at program start) and lives for the entire program:
 
 ```c
 int make_id(void) {
-    static int counter = 0;
+    static int counter = 0;   // initialized once, NOT each call
     return ++counter;
 }
 
-make_id()  // → 1
-make_id()  // → 2
-make_id()  // → 3
+make_id()  // returns 1
+make_id()  // returns 2
+make_id()  // returns 3
+// counter's value persists between calls
 ```
 
-### Variadic Functions — variable number of arguments
-
-this is how `printf` takes different numbers of arguments each call:
-
-```c
-#include <stdarg.h>
-
-int sum(int count, ...) {
-    va_list args;
-    va_start(args, count);
-    int total = 0;
-    for (int i = 0; i < count; i++) {
-        total += va_arg(args, int);
-    }
-    va_end(args);
-    return total;
-}
-
-sum(3, 10, 20, 30)   // 60
-sum(5, 1, 2, 3, 4, 5) // 15
-```
-
-C can't figure out the types or count on its own — you have to pass that info (like how printf uses the format string to know what to expect).
+useful for things like: counters, caches, one-time initialization flags.
 
 ### Function Pointers
 
-functions have addresses. you can store them in pointers and call them dynamically:
+functions have memory addresses. you can store those addresses in pointers and call functions through them:
 
 ```c
 int add(int a, int b) { return a + b; }
+int sub(int a, int b) { return a - b; }
 int mul(int a, int b) { return a * b; }
 
-int (*op)(int, int);  // pointer to a function taking 2 ints, returning int
-op = add;
-printf("%d\n", op(3, 4));  // 7
-op = mul;
-printf("%d\n", op(3, 4));  // 12
+// declare a pointer to a function taking two ints, returning int
+int (*operation)(int, int);
+
+operation = add;
+printf("%d\n", operation(3, 4));   // 7
+
+operation = mul;
+printf("%d\n", operation(3, 4));   // 12
 ```
 
-used as callbacks — passing a function as an argument to another function:
+the real power is passing functions as arguments to other functions — *callbacks*:
 
 ```c
+// apply a transformation to every element of an array
 void transform(int *arr, int len, int (*func)(int)) {
     for (int i = 0; i < len; i++) {
         arr[i] = func(arr[i]);
     }
 }
 
+int double_it(int x) { return x * 2; }
 int square(int x) { return x * x; }
 
 int arr[] = {1, 2, 3, 4, 5};
-transform(arr, 5, square);  // {1, 4, 9, 16, 25}
+transform(arr, 5, double_it);   // {2, 4, 6, 8, 10}
+transform(arr, 5, square);      // {4, 16, 36, 64, 100}
 ```
 
-typedef to make the syntax less ugly:
-```c
-typedef int (*MathOp)(int, int);
+the C standard library uses this pattern extensively. `qsort` takes a comparison function pointer so it can sort anything:
 
-MathOp op = add;
+```c
+int compare_ints(const void *a, const void *b) {
+    int ia = *(const int *)a;
+    int ib = *(const int *)b;
+    return (ia > ib) - (ia < ib);   // returns -1, 0, or 1
+}
+
+int arr[] = {5, 2, 8, 1, 9, 3};
+qsort(arr, 6, sizeof(int), compare_ints);
+// arr = {1, 2, 3, 5, 8, 9}
+```
+
+`typedef` makes function pointer syntax less terrifying:
+```c
+typedef int (*BinaryOp)(int, int);
+
+BinaryOp op = add;
 printf("%d\n", op(5, 3));
 ```
+
+### Variadic Functions
+
+functions that accept a variable number of arguments, like `printf`:
+
+```c
+#include <stdarg.h>
+
+// ... means "more arguments after this"
+// count tells us how many there are (we can't figure it out otherwise)
+int sum_all(int count, ...) {
+    va_list args;
+    va_start(args, count);   // initialize args to point after 'count'
+
+    int total = 0;
+    for (int i = 0; i < count; i++) {
+        total += va_arg(args, int);   // get next argument, specifying its type
+    }
+
+    va_end(args);    // clean up
+    return total;
+}
+
+sum_all(3, 10, 20, 30)   // 60
+sum_all(5, 1, 2, 3, 4, 5) // 15
+```
+
+C has no way to automatically know how many arguments were passed or what their types are. you have to pass that information yourself (printf uses the format string, our sum_all uses the count parameter).
+
+### Command Line Arguments
+
+`main` can receive command-line arguments:
+
+```c
+int main(int argc, char *argv[]) {
+    // argc = argument count (including the program name itself)
+    // argv = array of argument strings
+    // argv[0] = program name
+    // argv[1] = first argument
+    // ...
+    // argv[argc-1] = last argument
+    // argv[argc] = NULL (sentinel)
+
+    printf("program: %s\n", argv[0]);
+
+    for (int i = 1; i < argc; i++) {
+        printf("arg %d: %s\n", i, argv[i]);
+    }
+
+    return 0;
+}
+```
+
+```bash
+./myprogram hello world 42
+# argc = 4
+# argv[0] = "./myprogram"
+# argv[1] = "hello"
+# argv[2] = "world"
+# argv[3] = "42"
+```
+
+`argv[3]` is the string "42", not the integer 42. to convert: `int n = atoi(argv[3]);` or better `strtol(argv[3], NULL, 10)`.
 
 ---
 
 ## Arrays
 
-a fixed-size block of same-type elements stored one after another in memory.
+### What an Array Actually Is in Memory
 
-### Declaring and Initializing
+an array is a contiguous block of memory holding elements of the same type. "contiguous" means all the elements are right next to each other, with no gaps:
+
+```
+int arr[5] = {10, 20, 30, 40, 50};
+
+Memory layout:
+Address:  0x100  0x104  0x108  0x10C  0x110
+Value:      10     20     30     40     50
+Index:       0      1      2      3      4
+```
+
+each `int` is 4 bytes, so elements are 4 bytes apart. `arr[0]` is at address 0x100, `arr[1]` at 0x104, `arr[2]` at 0x108, etc.
+
+**array indexing is pointer arithmetic.** `arr[i]` is exactly the same as `*(arr + i)`. the compiler sees `arr[2]` and computes: start address + (2 × sizeof(int)) = 0x100 + 8 = 0x108, then reads the int at that address.
+
+### Declaring Arrays
 
 ```c
 int numbers[5];                          // 5 ints, uninitialized (garbage)
-int scores[5] = {95, 87, 72, 91, 68};   // initialized
-int zeroes[100] = {0};                   // all zeros — first is 0, rest default to 0
-int auto_size[] = {1, 2, 3, 4, 5};      // compiler counts the elements (5)
+int scores[5] = {95, 87, 72, 91, 68};  // initialized with values
+int zeroes[100] = {0};                   // first element 0, rest default to 0
+                                          // only the FIRST element is explicitly 0
+                                          // others are zero-initialized by the rule
+                                          // "if you partially initialize, rest is zero"
+int auto_size[] = {1, 2, 3, 4, 5};     // compiler counts: size is 5
+
+// designated initializers (C99):
+int sparse[10] = {[0] = 1, [5] = 10, [9] = 99};
+// all other elements are 0
 ```
 
-### Accessing Elements
-
-zero-indexed. first is [0], last is [size - 1]:
+### Accessing and Modifying Elements
 
 ```c
 int arr[5] = {10, 20, 30, 40, 50};
-arr[0]        // 10
-arr[4]        // 50
-arr[2] = 99;  // modify
+
+arr[0]        // 10 — first element
+arr[4]        // 50 — last element (index = size - 1)
+arr[2] = 99;  // modify element at index 2
+
+// accessing through a pointer (equivalent):
+int *p = arr;    // arr decays to pointer to first element
+*(p + 0)         // 10
+*(p + 2)         // 30 (after modification: 99)
+p[2]             // same as *(p + 2)
 ```
 
-**C does NOT check bounds.** `arr[10]` on a 5-element array? compiler won't stop you. you'll be reading or writing memory that doesn't belong to that array. this is how you get mysterious crashes and security vulnerabilities. C trusts you to stay in bounds. stay in bounds.
+**C never checks array bounds.** accessing `arr[5]` on a 5-element array compiles silently and reads whatever memory happens to be at that address. writing `arr[5] = 0` writes to memory you don't own. this can corrupt other variables, corrupt heap metadata, enable security exploits, or crash — or it can appear to "work" and cause a bug far later. C trusts you completely with memory access.
 
 ### Getting Array Length
 
 ```c
 int arr[] = {1, 2, 3, 4, 5};
-int len = sizeof(arr) / sizeof(arr[0]);  // 20 / 4 = 5
+int len = sizeof(arr) / sizeof(arr[0]);  // total bytes / bytes per element
 ```
 
-**this ONLY works in the same scope where the array was declared.** pass the array to a function and it becomes a pointer — this trick breaks. always pass length separately:
+`sizeof(arr)` gives the total bytes (20). `sizeof(arr[0])` gives bytes per element (4). dividing: 5 elements. clean. **but this only works in the scope where the array is declared.**
+
+once you pass an array to a function, it *decays* to a pointer to its first element. at that point `sizeof` gives you the pointer size (8 bytes on 64-bit), not the array size. always pass length separately:
 
 ```c
-void print_arr(int arr[], int len) {
-    for (int i = 0; i < len; i++) printf("%d ", arr[i]);
+void print_array(int *arr, int len) {
+    // sizeof(arr) here is sizeof(int*) = 8 — NOT the array size
+    for (int i = 0; i < len; i++) {
+        printf("%d ", arr[i]);
+    }
 }
+
+int data[] = {1, 2, 3, 4, 5};
+print_array(data, 5);   // must pass 5 explicitly
+// or:
+print_array(data, sizeof(data) / sizeof(data[0]));  // compute it here where it works
+```
+
+a common macro:
+```c
+#define ARRAY_LEN(a) (sizeof(a) / sizeof((a)[0]))
+// the (a)[0] with parentheses handles edge cases where a is a complex expression
 ```
 
 ### Multidimensional Arrays
+
+a 2D array is an array of arrays:
+
+```c
+int matrix[3][4];   // 3 rows, 4 columns
+```
+
+in memory, it's stored *row by row* (row-major order):
+```
+matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3],
+matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3],
+matrix[2][0], matrix[2][1], matrix[2][2], matrix[2][3]
+```
+
+this is one contiguous block of 12 ints. `matrix[1][2]` accesses the element at row 1, column 2 — which is at offset `(1 * 4 + 2) * sizeof(int)` from the start.
 
 ```c
 int grid[2][3] = {
@@ -687,184 +1275,312 @@ int grid[2][3] = {
     {4, 5, 6}
 };
 
-grid[1][2]  // 6 — row 1, column 2
+grid[1][2]   // 6 — row 1, column 2
+
+// iterate
+for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < 3; j++) {
+        printf("%d ", grid[i][j]);
+    }
+    printf("\n");
+}
 ```
 
-stored in memory row by row (row-major). looping row by row is cache-friendly and fast. jumping by column kills cache performance.
+**cache performance:** accessing `grid[i][j]` row by row (incrementing j in the inner loop) is cache-friendly — you're moving through memory sequentially. accessing column by column (incrementing i in the inner loop) means jumping `4 * sizeof(int)` bytes on each step — worse cache performance.
 
 ### Variable-Length Arrays (C99)
 
-C99 lets you use a runtime value as array size:
+C99 allows array sizes to be runtime variables:
 
 ```c
 int n;
 scanf("%d", &n);
-int arr[n];   // VLA — size set at runtime
+int arr[n];    // VLA — size determined at runtime
 arr[0] = 42;
 ```
 
-lives on the stack, automatically freed when the function returns. don't make huge VLAs — the stack is limited. for large dynamic sizes, use `malloc` instead.
+VLAs are allocated on the stack. they're automatically freed when the function returns. limitations: can't initialize at declaration time, can't use `sizeof` at compile time, C11 made support *optional* (though gcc and clang still support them). for large or unknown-size allocations, use `malloc` instead.
 
 ---
 
 ## Strings
 
-strings in C are arrays of `char` ending with a null byte `\0` (ASCII 0). there is no string type. no automatic length tracking. no bounds checking. just bytes in memory with a zero at the end.
+### What a String Actually Is
+
+strings in C are just arrays of `char` with a null terminator byte (`\0`, ASCII value 0) at the end. there is no special "string" type. just bytes.
 
 ```c
 char hello[] = "Hello";
-// memory: H  e  l  l  o  \0
-// index:  0  1  2  3  4   5
 ```
 
-### Initialization
+in memory:
+```
+Index:    0     1     2     3     4     5
+Value:   'H'   'e'   'l'   'l'   'o'  '\0'
+Decimal:  72   101   108   108   111    0
+```
+
+the null terminator is automatically added by the compiler when you use a string literal. it's how all string functions know where the string ends — they scan until they find a `\0`.
+
+**there's no length stored anywhere.** `strlen` works by scanning from the start until it hits `\0`, counting as it goes. it's O(n). calling it in a loop condition (`while (i < strlen(s))`) recomputes it every iteration — cache the result.
+
+### String Initialization Options
 
 ```c
-char s1[] = "Hello";          // array, writable, \0 auto-added, size 6
-char s2[20] = "Hello";        // array size 20, rest zero-filled
-char s3[] = {'H','i','\0'};   // same as "Hi", manual
-const char *s4 = "Hello";     // pointer to READ-ONLY string literal
+// 1. Array initialized from string literal — WRITABLE, \0 auto-added
+char s1[] = "Hello";          // size 6 (5 + \0), writable
+
+// 2. Array with explicit size
+char s2[10] = "Hello";        // size 10, first 6 used ("Hello\0"), rest zero
+
+// 3. Pointer to string literal — READ-ONLY
+const char *s3 = "Hello";     // points to read-only memory
+
+// 4. Manual initialization
+char s4[6] = {'H', 'e', 'l', 'l', 'o', '\0'};  // same as s1
 ```
 
-that last one — `const char *s4` points to memory you can't modify. `s4[0] = 'h'` is undefined behavior, usually crashes. use an array if you need to modify the string.
+**the critical difference between 1 and 3:**
+
+`char s1[] = "Hello"` — the string literal is copied into a writable array on the stack. you can modify `s1[0] = 'h'` freely.
+
+`const char *s3 = "Hello"` — `s3` is a pointer to a string literal stored in the program's read-only data segment. trying to modify it (`s3[0] = 'h'`) is undefined behavior, usually a segfault. always use `const char *` for pointers to string literals.
 
 ### Reading Strings
 
+`scanf` with `%s` reads until whitespace:
 ```c
-char name[50];
-scanf("%s", name);       // reads until whitespace, no & needed, no bounds check — risky
-scanf("%49s", name);     // reads at most 49 chars — safer
-
-// reading whole lines (better):
-fgets(name, sizeof(name), stdin);              // reads the whole line including spaces
-name[strcspn(name, "\n")] = '\0';              // strip the newline fgets keeps
+char buf[50];
+scanf("%s", buf);         // no & needed — buf already decays to pointer
+                          // reads until whitespace, NO bounds check
+scanf("%49s", buf);       // safer — reads at most 49 chars, leaves room for \0
 ```
 
-### String Functions
+`fgets` reads an entire line and respects the buffer size:
+```c
+char buf[100];
+fgets(buf, sizeof(buf), stdin);   // reads at most 99 chars + \0
+// fgets keeps the newline character '\n' at the end
+// strip it:
+buf[strcspn(buf, "\n")] = '\0';   // find '\n' position, replace with '\0'
+```
+
+`fgets` is generally safer than `scanf("%s")`. it won't overflow the buffer and it reads whole lines including spaces.
+
+### String Functions — what they do and why
 
 ```c
 #include <string.h>
-
-strlen(s)              // length, NOT including \0
-strcpy(dest, src)      // copy — dangerous if dest is too small
-strncpy(dest, src, n)  // copy at most n chars — safer
-strcat(dest, src)      // append — dangerous
-strncat(dest, src, n)  // append at most n chars — safer
-strcmp(s1, s2)         // 0 if equal, negative if s1<s2, positive if s1>s2
-strncmp(s1, s2, n)     // compare first n chars
-strchr(s, c)           // first occurrence of char c, returns pointer or NULL
-strstr(s, sub)         // find substring, returns pointer or NULL
-memset(s, c, n)        // set n bytes to value c
-memcpy(dest, src, n)   // copy n bytes
-memmove(dest, src, n)  // copy n bytes, safe when src and dest overlap
 ```
 
-**never use `strcpy` on user input without knowing both sizes.** use `snprintf` for safe string building — it literally cannot overflow:
+**`strlen(s)`** — scan `s` until `\0`, return the count. does NOT include the null terminator. O(n).
+
+**`strcpy(dest, src)`** — copy `src` into `dest` including the `\0`. **dangerous** — if `src` is longer than `dest`'s buffer, it writes past the end. classic buffer overflow. use `strncpy` or `snprintf` instead.
+
+**`strncpy(dest, src, n)`** — copy at most `n` characters. GOTCHA: if `src` is exactly `n` characters long, no `\0` is written. always manually null-terminate after:
+```c
+strncpy(dest, src, sizeof(dest) - 1);
+dest[sizeof(dest) - 1] = '\0';  // ensure null termination
+```
+
+**`strcat(dest, src)`** — append `src` to the end of `dest`. also dangerous for the same reason as `strcpy`.
+
+**`strncat(dest, src, n)`** — append at most `n` characters. safer.
+
+**`strcmp(s1, s2)`** — compare two strings character by character. returns 0 if equal, negative if s1 < s2 lexicographically, positive if s1 > s2. **never compare strings with `==`** — that compares pointers (addresses), not content.
+
+```c
+char a[] = "hello";
+char b[] = "hello";
+
+a == b             // WRONG — compares addresses (different arrays), likely false
+strcmp(a, b) == 0  // CORRECT — compares content, true
+```
+
+**`strchr(s, c)`** — find first occurrence of character `c` in string `s`. returns a pointer to it, or NULL if not found.
+
+**`strstr(s, sub)`** — find first occurrence of substring `sub` in string `s`. returns pointer to start of match, or NULL.
+
+**`memset(ptr, value, n)`** — set `n` bytes starting at `ptr` to `value`. value is a byte (int that gets truncated to unsigned char):
+```c
+char buf[100];
+memset(buf, 0, sizeof(buf));   // zero out buffer
+memset(buf, 'X', 10);         // set first 10 bytes to 'X'
+```
+
+**`memcpy(dest, src, n)`** — copy `n` bytes from `src` to `dest`. faster than a loop for large copies. undefined behavior if src and dest overlap.
+
+**`memmove(dest, src, n)`** — same as memcpy but safe when src and dest overlap. slightly slower. use when copying within the same buffer.
+
+### Safe String Building — snprintf
+
+the right way to build strings of unknown length:
 
 ```c
 char buf[64];
 snprintf(buf, sizeof(buf), "Hello %s, you are %d years old", name, age);
-// snprintf NEVER overflows. it stops at sizeof(buf).
+// snprintf ALWAYS null-terminates (unlike strncpy)
+// NEVER writes more than sizeof(buf) bytes
+// if the string would be longer, it's truncated
 ```
 
-### String Conversions
+`snprintf` is like `printf` but writes to a buffer instead of stdout. it's the safest general-purpose string building tool in C.
+
+### String Conversion Functions
 
 ```c
 #include <stdlib.h>
 
-int x = atoi("42");          // string to int — no error checking
-double d = atof("3.14");     // string to double — no error checking
+atoi("42")      // string to int — "42" → 42. NO error checking.
+atof("3.14")    // string to double. NO error checking.
 
-// better: strtol has error checking
+// better: strtol has proper error handling
 char *end;
-long n = strtol("123abc", &end, 10);  // base 10
-if (*end != '\0') printf("non-numeric stuff found: %s\n", end);
+long n = strtol("123abc", &end, 10);   // base 10
+// n = 123
+// end points to "abc" — where parsing stopped
+if (*end != '\0') {
+    printf("trailing non-numeric: %s\n", end);
+}
+
+// check for overflow:
+errno = 0;
+long val = strtol(str, &end, 10);
+if (errno == ERANGE) {
+    printf("overflow\n");
+}
 ```
 
 ---
 
 ## Pointers
 
-okay, this is the section. take your time. if you don't get it first read, read it again. no shame in that, pointers trip everyone up.
+pointers are the most important and most misunderstood feature of C. take your time here. read it twice if needed.
 
-### What's Actually Happening
+### Memory Addresses — the foundation
 
-every variable lives at some memory address — just a number like `0x7fff5a8b2c10`. a pointer is a variable that stores one of those addresses.
+every variable has an address — a number that identifies its location in RAM. on a 64-bit system, addresses are 64-bit numbers like `0x7fff5a8b2c10`.
+
+a pointer is a variable that stores one of these addresses:
 
 ```c
 int x = 42;
 int *p = &x;    // p stores the address of x
 ```
 
-three operators to know:
-- `&x` — **address-of**: gives you x's memory address
-- `int *p` — declares p as "pointer to int" (holds an int's address)
-- `*p` — **dereference**: "go to the address in p and look at what's there"
+three operators:
+- `&x` — **address-of operator**: gives you x's address
+- `int *p` — **pointer declaration**: p is a variable that holds an address of an int
+- `*p` — **dereference operator**: go to the address in p, give me what's there
 
 ```c
-printf("%d\n", x);          // 42 — value of x
-printf("%p\n", (void*)p);   // 0x7fff... — the address
-printf("%d\n", *p);         // 42 — value AT that address
+printf("%d\n",   x);           // 42 — value of x
+printf("%p\n",   (void*)p);    // 0x7fff... — address stored in p
+printf("%d\n",   *p);          // 42 — value at the address p holds
+printf("%zu\n",  sizeof(p));   // 8 — pointer is 8 bytes on 64-bit
+```
 
+since `*p` refers to the same memory as `x`, modifying one modifies the other:
+```c
 *p = 100;
-printf("%d\n", x);          // 100 — x changed because p points to x
+printf("%d\n", x);   // 100
+x = 200;
+printf("%d\n", *p);  // 200
 ```
 
 ### Why Pointers Exist
 
-remember how function arguments are copies? pointers fix that:
+three main reasons:
 
+**1. Modifying variables from inside a function.** parameters are copies. pointers let you modify the original:
 ```c
-void actually_double(int *p) {
-    *p = *p * 2;   // go to the address, modify what's there
+void increment(int *n) {
+    (*n)++;   // dereference n, then increment the value there
 }
 
-int n = 5;
-actually_double(&n);   // pass the ADDRESS
-printf("%d\n", n);     // 10 — actually changed
+int count = 5;
+increment(&count);
+printf("%d\n", count);   // 6
 ```
 
-this is exactly how `scanf` works — it needs to write INTO your variable:
+**2. Efficient passing of large data.** copying a 1MB struct every function call is wasteful. passing a pointer (8 bytes) is cheap:
 ```c
-int x;
-scanf("%d", &x);   // & gives scanf x's address so it can write there
-```
-
-### Null Pointers
-
-pointer that points to nothing should be NULL:
-
-```c
-int *p = NULL;
-
-if (p == NULL) {
-    printf("not pointing to anything\n");
+void process(const LargeStruct *data) {  // 8 bytes passed, not 1MB
+    // read data through pointer
 }
-
-*p = 5;   // SEGFAULT — never dereference NULL
 ```
 
-always check for NULL before dereferencing if there's any chance it could be NULL. tons of standard functions return NULL on failure.
+**3. Dynamic memory allocation.** `malloc` returns a pointer to heap memory. without pointers you can't use the heap:
+```c
+int *arr = malloc(1000 * sizeof(int));   // pointer to 4000 bytes of heap memory
+```
 
-### Pointer Arithmetic
+### Pointer Arithmetic — how indexing works
 
-adding to a pointer moves it by that many *elements*, not bytes:
+when you add an integer to a pointer, it advances by that many *elements*, not bytes:
 
 ```c
 int arr[] = {10, 20, 30, 40, 50};
-int *p = arr;     // points to arr[0]
+int *p = arr;   // p points to arr[0], address 0x100 (hypothetically)
 
-*(p + 0)   // 10 — arr[0]
-*(p + 1)   // 20 — arr[1]
-*(p + 2)   // 30 — arr[2]
+p + 0   // address 0x100, value 10
+p + 1   // address 0x104, value 20  (0x100 + 1*sizeof(int) = 0x100 + 4)
+p + 2   // address 0x108, value 30
+p + 3   // address 0x10C, value 40
 
-// these are identical:
-arr[3]      // 40
-*(arr + 3)  // 40
-p[3]        // 40 — [] is literally just *(p + n) under the hood
+*(p + 1)  // 20 — dereference
+p[1]      // 20 — IDENTICAL TO *(p + 1), just different syntax
 ```
 
-`p + 1` adds `sizeof(int)` bytes (usually 4). the compiler scales automatically based on the pointer type.
+**array indexing is pointer arithmetic.** `arr[i]` is literally defined as `*(arr + i)`. they compile to the same machine code.
+
+`p + 1` adds `sizeof(int)` bytes to the address. `p + n` adds `n * sizeof(int)` bytes. the compiler handles the scaling automatically based on the pointer type. this is why pointer type matters — `char *p; p + 1` moves 1 byte. `int *p; p + 1` moves 4 bytes. `double *p; p + 1` moves 8 bytes.
+
+subtracting two pointers gives the number of elements between them:
+```c
+int *start = arr;
+int *end = arr + 5;
+ptrdiff_t n = end - start;   // 5 — number of elements, not bytes
+```
+
+### NULL Pointers
+
+a pointer that doesn't point to anything valid should be set to NULL:
+
+```c
+int *p = NULL;   // NULL is defined as ((void*)0) or just 0
+
+if (p == NULL) {
+    printf("pointer is not initialized\n");
+}
+
+if (!p) {   // same thing — NULL is zero, zero is false
+    printf("pointer is null\n");
+}
+
+*p = 5;   // CRASH (SIGSEGV) — dereferencing NULL
+           // the OS catches this and kills your program
+```
+
+**why does dereferencing NULL crash?** address 0 is intentionally mapped to nothing by the OS. accessing it triggers a protection fault (segfault). this is actually a feature — it turns "use before initialize" bugs into immediate, detectable crashes rather than silent data corruption.
+
+always check for NULL before dereferencing if there's any chance the pointer could be NULL. functions like `malloc`, `fopen`, `strchr` return NULL on failure.
+
+### void Pointers
+
+`void*` is a pointer with no type — it just holds an address without specifying what's there:
+
+```c
+void *ptr;
+int x = 42;
+ptr = &x;   // void* can hold any pointer type, no cast needed
+
+// to use the value, cast to the correct type:
+int *ip = (int *)ptr;
+printf("%d\n", *ip);   // 42
+```
+
+`void*` is how C implements generic functions. `malloc` returns `void*` — it doesn't know what type you'll store there. `memcpy` takes `void*` parameters — it can copy any type. `qsort`'s comparison function receives `const void*` parameters.
 
 ### Pointer to Pointer
 
@@ -873,35 +1589,90 @@ pointers can point to other pointers:
 ```c
 int x = 5;
 int *p = &x;
-int **pp = &p;
+int **pp = &p;   // pointer to a pointer to int
 
-printf("%d\n", **pp);  // 5 — dereference twice
+printf("%d\n", x);    // 5 — the value
+printf("%d\n", *p);   // 5 — value through one level of indirection
+printf("%d\n", **pp); // 5 — value through two levels
 
 **pp = 99;
-printf("%d\n", x);     // 99
+printf("%d\n", x);    // 99 — modified through two levels of pointer
 ```
 
-this comes up in: dynamic 2D arrays, linked lists, functions that need to modify a pointer itself, `char **argv`.
+where this actually comes up:
+- dynamic 2D arrays (`int **matrix`)
+- functions that need to modify a pointer (like memory allocation wrappers)
+- arrays of strings (`char **argv`)
 
-### const + Pointers — four combos
+```c
+// function that allocates a buffer and gives you a pointer to it
+void allocate(int **out, int size) {
+    *out = malloc(size * sizeof(int));
+}
+
+int *data = NULL;
+allocate(&data, 100);   // pass pointer to pointer
+// data now points to allocated memory
+```
+
+### const and Pointers — four combinations
 
 ```c
 int x = 5;
 
-int *p = &x;               // can change p, can change *p
-const int *p = &x;         // can change p, CANNOT change *p
-int * const p = &x;        // CANNOT change p, can change *p
-const int * const p = &x;  // can change neither
-
-// read it right-to-left:
-// "const int *p" → p is a [pointer to] [const int]
-// "int * const p" → p is a [const pointer to] [int]
+int *p = &x;                  // can change p (point elsewhere), can change *p
+const int *p = &x;            // can change p, CANNOT change *p
+int * const p = &x;           // CANNOT change p, can change *p
+const int * const p = &x;     // cannot change either
 ```
 
-use `const int *` in function parameters to say "i promise i won't modify what you pass me":
+read right-to-left through the type declaration:
+- `const int *p` — "p is a [pointer to] [const int]"
+- `int * const p` — "p is a [const] [pointer to] [int]"
+
+use `const int *` in function parameters to promise you won't modify what the pointer points to:
 ```c
-void print_string(const char *s) {
-    printf("%s\n", s);  // read-only, won't modify s
+void print_string(const char *s) {  // won't modify the string
+    while (*s) putchar(*s++);
+}
+```
+
+this lets callers safely pass string literals (which are read-only):
+```c
+print_string("hello");  // fine — const char* can point to string literals
+```
+
+without `const`, the function signature would accept a pointer to modifiable chars, and passing a string literal would be technically wrong (even if the function doesn't actually modify it).
+
+### Function Pointers in Depth
+
+the syntax for declaring function pointers is notorious for being confusing:
+
+```c
+// a function:
+int add(int a, int b) { return a + b; }
+
+// a pointer to a function taking (int, int) and returning int:
+int (*fp)(int, int);
+
+// to read the declaration: start from the variable name, go right, then left
+// fp is a (*fp) pointer to (int, int) function taking two ints, returning int
+```
+
+calling:
+```c
+fp = add;          // assign function address (no & needed, function name is already a pointer)
+fp(3, 4)           // call through pointer — same as add(3, 4)
+(*fp)(3, 4)        // also valid — explicitly dereference first
+```
+
+typedef cleans up the syntax:
+```c
+typedef int (*BinaryIntOp)(int, int);
+
+BinaryIntOp operations[] = {add, sub, mul};
+for (int i = 0; i < 3; i++) {
+    printf("%d\n", operations[i](10, 3));
 }
 ```
 
@@ -909,231 +1680,305 @@ void print_string(const char *s) {
 
 ## Memory Management
 
-this is where C separates from every managed language. there is no garbage collector. you request memory, you free memory. that's on you.
+### The Stack vs The Heap
 
-### The Stack
+**the stack** — fast, automatic, limited. local variables live here. when a function is called, space is pushed onto the stack. when it returns, space is popped. you never explicitly allocate or free stack memory — it's automatic.
 
-local variables live here. fast, automatically managed. when a function returns, all its local variables are gone.
-
-```c
-void foo(void) {
-    int x = 10;       // stack
-    int arr[1000];    // stack — 4000 bytes
-}   // both gone instantly when foo returns
+```
+| main's locals     |
+| foo's locals      |  ← top of stack (grows downward)
+| bar's locals      |
 ```
 
-stack is limited — usually 1-8MB. putting a huge array on the stack:
-```c
-void bad(void) {
-    int massive[1000000];   // 4MB on stack — will crash (stack overflow)
-}
-```
+the stack is typically 1-8 MB. allocating too much on the stack (huge local arrays, deep recursion) overflows it — "stack overflow" is literally running out of stack space.
 
-for large data, use the heap.
+**the heap** — large, manual, flexible. you explicitly request memory from the heap with `malloc` and release it with `free`. the heap is limited only by your system's RAM. but you're responsible for tracking and releasing everything you allocate.
 
-### The Heap
-
-large memory pool you manage yourself. request with `malloc`, release with `free`:
+### malloc — Memory Allocation
 
 ```c
 #include <stdlib.h>
 
-int *arr = malloc(100 * sizeof(int));   // allocate space for 100 ints
+// allocate space for n bytes
+// returns pointer to allocated memory, or NULL if allocation fails
+void *malloc(size_t size);
 
+int *arr = malloc(10 * sizeof(int));   // allocate for 10 ints
+```
+
+what `malloc` does:
+1. finds a free block of memory at least `size` bytes large in the heap
+2. marks it as in-use (so no other call gets the same memory)
+3. returns a pointer to it
+
+the returned memory is **uninitialized** — contains whatever bytes were there before (from previous allocations that were freed). never read from freshly malloc'd memory without writing to it first.
+
+**always check the return value:**
+```c
+int *arr = malloc(10 * sizeof(int));
 if (arr == NULL) {
     fprintf(stderr, "malloc failed\n");
-    exit(1);
+    exit(1);   // or handle the error gracefully
 }
-
-for (int i = 0; i < 100; i++) {
-    arr[i] = i * i;
-}
-
-free(arr);     // release it when done
-arr = NULL;    // prevent accidental use-after-free
 ```
 
-### malloc / calloc / realloc / free
+malloc returning NULL is rare in practice (your system is nearly out of memory) but it can happen. a NULL dereference crash is confusing to debug — a checked error is not.
+
+### calloc — Zero-Initialized Allocation
 
 ```c
-// malloc — raw bytes, uninitialized (contains garbage)
-int *p = malloc(10 * sizeof(int));
+void *calloc(size_t n, size_t size);
 
-// calloc — allocates AND zero-initializes
-int *p = calloc(10, sizeof(int));   // 10 ints, all 0
-
-// realloc — resize an existing allocation
-int *tmp = realloc(p, 20 * sizeof(int));
-if (tmp == NULL) {
-    free(p);    // realloc failed but p is still valid — free it
-    return;
-}
-p = tmp;        // only update p if it succeeded
-
-// free — give it back
-free(p);
-p = NULL;
+int *arr = calloc(10, sizeof(int));   // 10 ints, all set to zero
 ```
 
-**realloc gotcha:** if you do `p = realloc(p, size)` and it fails, you've lost your only reference to the original memory. always use a temp pointer.
+calloc = count × size bytes, zero-initialized. prefer calloc when you need the memory zeroed (avoids manually calling memset). the two-argument form also protects against integer overflow in the size calculation (if `n * size` would overflow, `malloc(n * size)` might allocate a tiny buffer; calloc handles this correctly).
+
+### realloc — Resize an Allocation
+
+```c
+void *realloc(void *ptr, size_t new_size);
+```
+
+resizes a previously allocated block. may return the same pointer (if the block can grow in place), or a new pointer (if it had to move the data to a larger location).
+
+```c
+int *arr = malloc(10 * sizeof(int));
+// ... fill arr with 10 ints ...
+
+// need more space:
+int *bigger = realloc(arr, 20 * sizeof(int));
+if (bigger == NULL) {
+    // realloc FAILED — BUT arr is still valid and unchanged
+    // if you had done arr = realloc(arr, ...) and it returned NULL,
+    // you'd have lost arr — memory leak
+    free(arr);
+    return NULL;
+}
+arr = bigger;   // only update arr after confirming success
+// arr now points to space for 20 ints, first 10 are the original values
+```
+
+**the realloc gotcha:** never do `ptr = realloc(ptr, size)` directly. if realloc fails, it returns NULL but does NOT free the original pointer. `ptr = realloc(ptr, size)` on failure sets ptr to NULL — you've lost your only reference to the original memory. leaked forever. always use a temp:
+
+```c
+void *tmp = realloc(ptr, new_size);
+if (tmp == NULL) {
+    free(ptr);     // still responsible for original
+    return error;
+}
+ptr = tmp;
+```
+
+### free — Releasing Memory
+
+```c
+void free(void *ptr);
+```
+
+returns the memory pointed to by `ptr` back to the heap for future use. `ptr` must be a pointer returned by `malloc`, `calloc`, or `realloc` — you can't free partial allocations or stack memory.
+
+```c
+int *arr = malloc(100 * sizeof(int));
+// ... use arr ...
+free(arr);
+arr = NULL;   // set to NULL after freeing — good practice
+```
+
+**setting to NULL after freeing:** prevents accidental use-after-free. if you dereference a NULL pointer, you get an immediate crash (detectable). if you dereference a freed (but non-NULL) pointer, you get undefined behavior — might appear to work, might corrupt data silently, might crash later. NULL is the safe sentinel.
 
 ### The Four Memory Crimes
 
-these will genuinely ruin your program. and the worst part is the compiler won't even warn you about most of them.
-
-**1. Memory Leak — forgetting to free:**
+**1. Memory Leak — allocate but never free:**
 ```c
-void leaky(int n) {
-    int *arr = malloc(n * sizeof(int));
-    // ... use arr ...
-    return;   // forgot free(arr) — that memory is gone until the process ends
+void leaky_function(void) {
+    int *data = malloc(1000 * sizeof(int));
+    // ... use data ...
+    return;   // forgot free(data)
 }
-// call this in a loop and your program eats RAM until it crashes
+// call this in a loop — 4KB lost per call, eventually run out of memory
 ```
 
-**2. Use-After-Free:**
+**2. Use-After-Free — access memory after freeing it:**
 ```c
 int *p = malloc(sizeof(int));
 *p = 42;
 free(p);
-printf("%d\n", *p);   // undefined behavior — could print anything, could crash
+printf("%d\n", *p);   // undefined behavior — memory freed
+p[0] = 5;             // might corrupt heap allocator's internal data structures
 ```
 
-**3. Double Free:**
+after `free(p)`, the allocator might immediately reuse that memory for another allocation. writing to it after freeing can corrupt completely unrelated data in your program.
+
+**3. Double Free — free the same pointer twice:**
 ```c
 free(p);
-free(p);   // undefined behavior — usually corrupts heap and crashes
+free(p);   // undefined behavior — often corrupts heap metadata, causes crash later
 ```
 
-**4. Buffer Overflow:**
+the heap allocator stores metadata (size, next free block, etc.) in the memory surrounding allocations. freeing the same pointer twice can corrupt these structures, causing crashes that appear to happen at completely unrelated points in the program — very hard to debug.
+
+**4. Buffer Overflow — write past the end of an allocation:**
 ```c
 int *arr = malloc(5 * sizeof(int));
-arr[5] = 99;    // one past the end — writing memory you don't own
-arr[-1] = 0;    // before the start — also bad
+arr[5] = 99;   // one past the end — writes over whatever follows in memory
+arr[-1] = 0;   // before the start — also writes outside the allocation
 ```
 
-### Catching Memory Bugs
+the allocator stores metadata right before each allocation. writing `arr[-1]` or `arr[5]` can corrupt that metadata, causing heap corruption bugs.
 
-compile with AddressSanitizer — it catches all four of the above:
+### How to Find Memory Bugs
+
+**AddressSanitizer** — compile with `-fsanitize=address,undefined`. it wraps all memory operations with checks. when you access memory you shouldn't, it immediately prints exactly what went wrong, what line it happened on, and a full call stack. use this during development:
 
 ```bash
 gcc -fsanitize=address,undefined -g -o program program.c
 ./program
 ```
 
-it'll tell you exactly what went wrong, on which line, with a full stack trace. run this on everything.
-
-Valgrind for even deeper leak analysis:
+**Valgrind** — a tool that runs your program in a virtual machine and tracks every byte of memory:
 ```bash
-valgrind --leak-check=full ./program
+valgrind --leak-check=full --show-leak-kinds=all ./program
 ```
 
-### Building a Dynamic Array
+slower than ASan but catches more subtle issues. both are invaluable. use ASan first (faster), use Valgrind for thorough leak checking.
 
-C has no built-in growable array (like python's list). here's the standard pattern:
+### Dynamic Array Pattern
+
+C has no built-in growable array. here's how to implement one:
 
 ```c
 typedef struct {
     int    *data;
-    size_t  size;      // current element count
-    size_t  capacity;  // allocated slots
-} IntArray;
+    size_t  size;      // current number of elements
+    size_t  capacity;  // allocated space
+} IntVec;
 
-IntArray array_new(void) {
-    return (IntArray){
-        .data = malloc(4 * sizeof(int)),
-        .size = 0,
-        .capacity = 4
-    };
+IntVec vec_create(void) {
+    IntVec v;
+    v.data = malloc(4 * sizeof(int));
+    v.size = 0;
+    v.capacity = 4;
+    return v;
 }
 
-void array_push(IntArray *a, int val) {
-    if (a->size == a->capacity) {
-        a->capacity *= 2;
-        int *tmp = realloc(a->data, a->capacity * sizeof(int));
-        if (!tmp) { fprintf(stderr, "OOM\n"); exit(1); }
-        a->data = tmp;
+void vec_push(IntVec *v, int val) {
+    if (v->size == v->capacity) {
+        v->capacity *= 2;  // double capacity
+        int *tmp = realloc(v->data, v->capacity * sizeof(int));
+        if (tmp == NULL) { fprintf(stderr, "OOM\n"); exit(1); }
+        v->data = tmp;
     }
-    a->data[a->size++] = val;
+    v->data[v->size++] = val;
 }
 
-void array_free(IntArray *a) {
-    free(a->data);
-    a->data = NULL;
-    a->size = a->capacity = 0;
+void vec_free(IntVec *v) {
+    free(v->data);
+    v->data = NULL;
+    v->size = v->capacity = 0;
 }
 ```
 
-"double when full" is the standard strategy. python lists, C++ vectors, Java ArrayLists — all use this. gives O(1) amortized push time.
+"double when full" is the standard growth strategy. python lists, C++ vectors, java ArrayLists — all use this. the mathematical reason it's O(1) amortized: if you double each time, the total copies made over n pushes is at most 2n — a constant factor.
 
 ---
 
 ## Structs, Unions, and Enums
 
-### Structs
+### Structs — Grouping Related Data
 
-group related variables together under one name:
+a struct bundles multiple variables under one name. it's a custom data type:
 
 ```c
 typedef struct {
-    char  name[50];
-    int   age;
-    float gpa;
+    char   name[50];
+    int    age;
+    double gpa;
+    int    student_id;
 } Student;
 
-Student s1 = {"Alice", 18, 3.9};
-Student s2 = {.name = "Bob", .age = 19, .gpa = 3.5};  // designated initializers (C99)
+Student s1 = {"Alice", 18, 3.9, 1001};                  // positional
+Student s2 = {.name = "Bob", .age = 19, .gpa = 3.5,
+              .student_id = 1002};                        // designated (C99)
 
-printf("%s is %d\n", s1.name, s1.age);
-s1.age++;   // just use dot notation
+printf("%s: %.1f\n", s1.name, s1.gpa);   // Alice: 3.9
+s1.age++;
 ```
 
-structs copy by value when assigned or passed to functions:
-```c
-Student copy = s1;    // completely separate copy
-copy.age = 99;        // doesn't affect s1
-```
-
-to modify a struct inside a function, pass a pointer and use `->`:
-```c
-void birthday(Student *s) {
-    s->age++;   // arrow -> is shorthand for (*s).age
-}
-
-birthday(&s1);
-```
-
-### Struct Padding — the thing nobody warns you about
+**struct layout in memory** — members are laid out in the order declared, but the compiler inserts *padding bytes* between members to ensure alignment. integers typically need to start at addresses divisible by their size:
 
 ```c
 typedef struct {
-    char a;   // 1 byte
-    int  b;   // 4 bytes
-    char c;   // 1 byte
+    char a;    // 1 byte at offset 0
+               // 3 bytes padding (to align next int to 4-byte boundary)
+    int  b;    // 4 bytes at offset 4
+    char c;    // 1 byte at offset 8
+               // 3 bytes padding (to make total size multiple of 4)
 } S;
 
-printf("%zu\n", sizeof(S));   // probably 12, not 6
+printf("%zu\n", sizeof(S));   // 12, not 6
 ```
 
-the compiler inserts padding to align fields on their natural boundaries (ints want addresses divisible by 4). reordering saves space:
+order matters for size:
+```c
+typedef struct {
+    int  b;    // 4 bytes at offset 0
+    char a;    // 1 byte at offset 4
+    char c;    // 1 byte at offset 5
+               // 2 bytes padding
+} S2;
+
+printf("%zu\n", sizeof(S2));   // 8 — smaller, same data
+```
+
+rule for minimizing size: arrange members from largest to smallest. this matters when you have huge arrays of structs or when you're mapping binary file formats.
+
+### Structs and Pointers
+
+passing a struct by value copies the entire struct. for large structs this is expensive. pass by pointer:
+
+```c
+void birthday(Student *s) {
+    s->age++;            // arrow operator: (*s).age
+    // s->age is shorthand for (*s).age
+}
+
+Student st = {"Charlie", 20, 3.7, 1003};
+birthday(&st);
+printf("%d\n", st.age);   // 21
+```
+
+the arrow operator `->` dereferences the pointer and accesses the member. `s->age` is exactly equivalent to `(*s).age`.
+
+### Nested Structs
 
 ```c
 typedef struct {
-    int  b;   // 4 bytes — put bigger types first
-    char a;   // 1 byte
-    char c;   // 1 byte
-              // 2 bytes padding here
-} S;          // 8 bytes — better
+    double x, y;
+} Point;
+
+typedef struct {
+    Point  center;
+    double radius;
+    int    id;
+} Circle;
+
+Circle c = {{3.0, 4.0}, 5.0, 1};
+printf("center: (%.1f, %.1f)\n", c.center.x, c.center.y);
+
+Circle *cp = &c;
+cp->center.x = 0.0;    // modify nested member through pointer
 ```
 
-matters a lot when working with binary file formats or sending structs over a network.
+### Self-Referential Structs — Linked Lists and Trees
 
-### Linked Lists — the classic self-referencing struct
+a struct can contain a pointer to a struct of the same type. this is how linked lists, trees, and graphs are built:
 
 ```c
 typedef struct Node {
-    int          data;
-    struct Node *next;   // must say "struct Node" here, typedef isn't done yet
+    int         data;
+    struct Node *next;    // must say "struct Node", can't use typedef here
+                          // because the typedef isn't complete until the end
 } Node;
 
 // build: 1 -> 2 -> 3 -> NULL
@@ -1146,211 +1991,363 @@ head->next->next->data = 3;
 head->next->next->next = NULL;
 
 // traverse
-for (Node *cur = head; cur != NULL; cur = cur->next) {
-    printf("%d ", cur->data);
+for (Node *curr = head; curr != NULL; curr = curr->next) {
+    printf("%d ", curr->data);
 }
 
-// free every node
-Node *cur = head;
-while (cur != NULL) {
-    Node *tmp = cur->next;   // save next BEFORE freeing current
-    free(cur);
-    cur = tmp;
+// free — MUST save next before freeing current
+Node *curr = head;
+while (curr != NULL) {
+    Node *next = curr->next;   // save before free
+    free(curr);
+    curr = next;
 }
 ```
 
-### Unions
+**why save next before freeing?** once you call `free(curr)`, `curr`'s memory is released and might be overwritten immediately. accessing `curr->next` after `free(curr)` is use-after-free — undefined behavior. save the next pointer first.
 
-all members share the same memory. size = size of largest member. only one member valid at a time:
+### Flexible Array Members (C99)
+
+a struct with an unknown-size array at the end:
+
+```c
+typedef struct {
+    size_t length;
+    int    data[];   // flexible array member — must be last
+} IntBuffer;
+
+// allocate header + n ints in one allocation
+size_t n = 10;
+IntBuffer *buf = malloc(sizeof(IntBuffer) + n * sizeof(int));
+buf->length = n;
+buf->data[0] = 42;
+
+free(buf);   // one free for everything — clean
+```
+
+useful for variable-length messages, buffers with metadata, protocol headers.
+
+### Unions — Overlapping Memory
+
+all members of a union share the same memory location. the size of a union equals the size of its largest member:
 
 ```c
 union Data {
     int    i;
     float  f;
     double d;
+    char   str[8];
 };
 
-union Data v;
-v.i = 42;
-printf("%d\n", v.i);   // 42
+union Data u;
+printf("size: %zu\n", sizeof(u));   // 8 (size of largest member — double)
 
-v.f = 3.14f;
-printf("%f\n", v.f);   // 3.14
-printf("%d\n", v.i);   // garbage — f and i share memory
+u.i = 42;
+printf("%d\n", u.i);   // 42
+
+u.f = 3.14f;
+printf("%f\n", u.f);   // 3.14
+printf("%d\n", u.i);   // GARBAGE — u.f overwrote the same bytes
 ```
 
-tagged union pattern — a variable that can be multiple types:
+unions exist for two main reasons:
+
+**1. Tagged unions (discriminated unions)** — a value that can be one of several types:
 ```c
-typedef enum { VAL_INT, VAL_FLOAT, VAL_STRING } ValType;
+typedef enum { TYPE_INT, TYPE_FLOAT, TYPE_STRING } ValType;
 
 typedef struct {
     ValType type;
     union {
-        int   i;
-        float f;
-        char  s[64];
-    };
+        int    i;
+        float  f;
+        char   s[64];
+    } data;
 } Value;
 
-Value v = {.type = VAL_INT, .i = 100};
+Value v;
+v.type = TYPE_INT;
+v.data.i = 42;
 
-if (v.type == VAL_INT) printf("int: %d\n", v.i);
+if (v.type == TYPE_INT)   printf("int: %d\n",   v.data.i);
+if (v.type == TYPE_FLOAT) printf("float: %f\n", v.data.f);
 ```
 
-this pattern is in JSON parsers, scripting languages, interpreters — anywhere one variable needs multiple possible types.
+**2. Type punning** — reinterpreting the same bytes as a different type:
+```c
+union FloatBits {
+    float    f;
+    uint32_t bits;
+};
 
-### Enums
+union FloatBits fb;
+fb.f = 3.14f;
+printf("bits of 3.14f: 0x%08X\n", fb.bits);   // 0x4048F5C3
+```
 
-named integer constants:
+this is the correct way to do type punning in C (using a union). using pointer casts for the same thing violates strict aliasing rules and is technically undefined behavior.
+
+### Enums — Named Integer Constants
+
+enums give names to a sequence of integer constants:
 
 ```c
 typedef enum {
-    MON = 0, TUE, WED, THU, FRI, SAT, SUN
+    MON = 0,   // explicitly set — unnecessary since 0 is default
+    TUE,       // 1
+    WED,       // 2
+    THU,       // 3
+    FRI,       // 4
+    SAT,       // 5
+    SUN        // 6
 } Weekday;
 
 typedef enum {
     HTTP_OK           = 200,
+    HTTP_CREATED      = 201,
     HTTP_NOT_FOUND    = 404,
     HTTP_SERVER_ERROR = 500
-} HttpCode;
+} HttpStatus;
 
 Weekday today = WED;
-if (today >= MON && today <= FRI) printf("its a weekday grind\n");
+if (today == WED || today == THU) printf("midweek\n");
+
+HttpStatus status = HTTP_NOT_FOUND;
+printf("status: %d\n", status);   // 404
 ```
 
-under the hood enums are just ints. no type enforcement in C (unlike C++).
+enums are just ints. there's no type safety in C (unlike C++'s `enum class`). you can assign any integer to an enum variable and the compiler won't complain.
+
+benefits over plain `#define` constants: enums show up in debuggers (you see `WED` not `2`), they're grouped together visually, and some compilers warn about missing cases in a switch.
 
 ---
 
 ## File I/O
 
-C handles files through the `FILE` type in `<stdio.h>`.
+C handles files through `FILE*` — an opaque type defined in `<stdio.h>` that represents an open file.
 
-### Open, Use, Close
+### Opening and Closing Files
 
 ```c
-FILE *fp = fopen("data.txt", "r");
+FILE *fp = fopen("data.txt", "r");   // open for reading
 if (fp == NULL) {
-    perror("fopen");   // "fopen: No such file or directory"
+    perror("fopen");   // prints: "fopen: No such file or directory" (from errno)
     return 1;
 }
 
-// ... do stuff ...
+// ... use the file ...
 
 fclose(fp);   // always close it. always.
 ```
 
+**always check fopen's return value.** it returns NULL if the file doesn't exist, if permissions deny access, or if the OS is out of file descriptors. proceeding with a NULL file pointer causes a crash.
+
+**always call fclose.** open file descriptors are a finite OS resource. more importantly, output may be buffered — `fclose` flushes the buffer and ensures all data is actually written to disk.
+
+**mode strings:**
+
 | Mode | Meaning |
 |------|---------|
-| `"r"` | read (file must exist) |
-| `"w"` | write (creates or truncates) |
-| `"a"` | append (creates if needed) |
-| `"r+"` | read + write |
-| `"rb"` / `"wb"` | binary mode |
+| `"r"` | read — file must exist |
+| `"w"` | write — creates or truncates to zero |
+| `"a"` | append — creates or writes to end |
+| `"r+"` | read and write — file must exist |
+| `"w+"` | read and write — creates or truncates |
+| `"a+"` | read and append |
+| `"rb"`, `"wb"` | binary mode (important on Windows — doesn't translate line endings) |
 
-### Reading
+### Reading Text Files
 
+**character by character:**
 ```c
-// character by character
-int c;
-while ((c = fgetc(fp)) != EOF) putchar(c);
-
-// line by line
-char line[256];
-while (fgets(line, sizeof(line), fp) != NULL) {
-    printf("%s", line);   // fgets keeps the \n
+int c;   // int, not char — EOF is -1, doesn't fit in char on some platforms
+while ((c = fgetc(fp)) != EOF) {
+    putchar(c);
 }
+```
 
-// formatted
-int id; char name[50]; float score;
+**line by line:**
+```c
+char line[1024];
+while (fgets(line, sizeof(line), fp) != NULL) {
+    printf("%s", line);   // fgets keeps the '\n'
+}
+```
+
+`fgets` reads at most `sizeof(line) - 1` characters plus a `\0`. it stops at newline (keeping it) or EOF. returns NULL at EOF or error.
+
+**formatted data:**
+```c
+int id;
+char name[50];
+float score;
+
+// returns number of items successfully read
+// loop while it keeps reading the expected number of items (3)
 while (fscanf(fp, "%d %49s %f", &id, name, &score) == 3) {
     printf("%d %s %.1f\n", id, name, score);
 }
 ```
 
-### Writing
+**whole file into memory:**
+```c
+char *read_entire_file(const char *path, size_t *out_size) {
+    FILE *fp = fopen(path, "rb");
+    if (!fp) return NULL;
+
+    // get file size
+    fseek(fp, 0, SEEK_END);
+    long size = ftell(fp);
+    rewind(fp);
+
+    if (size < 0) { fclose(fp); return NULL; }
+
+    char *buf = malloc((size_t)size + 1);  // +1 for null terminator
+    if (!buf) { fclose(fp); return NULL; }
+
+    size_t read = fread(buf, 1, (size_t)size, fp);
+    fclose(fp);
+
+    if (read != (size_t)size) { free(buf); return NULL; }
+
+    buf[size] = '\0';
+    if (out_size) *out_size = (size_t)size;
+    return buf;   // caller must free
+}
+```
+
+### Writing Text Files
 
 ```c
-FILE *fp = fopen("out.txt", "w");
-fprintf(fp, "score: %d\n", 95);
-fputs("another line\n", fp);
-fputc('X', fp);
+FILE *fp = fopen("output.txt", "w");
+if (!fp) { perror("fopen"); return 1; }
+
+fprintf(fp, "Hello %s! Score: %d\n", name, score);   // like printf to a file
+fputs("another line\n", fp);                           // write string
+fputc('X', fp);                                        // write single char
+
 fclose(fp);
 ```
 
 ### Binary Files
 
+for non-text data — images, audio, custom formats, serialized structs:
+
 ```c
-int data[] = {1, 2, 3, 4, 5};
+struct Record {
+    int id;
+    float value;
+    char name[32];
+};
 
 // write
+struct Record records[5] = { ... };
 FILE *fp = fopen("data.bin", "wb");
-fwrite(data, sizeof(int), 5, fp);
+size_t written = fwrite(records, sizeof(struct Record), 5, fp);
+// writes 5 records. each record is sizeof(struct Record) bytes.
 fclose(fp);
 
 // read back
-int back[5];
+struct Record loaded[5];
 fp = fopen("data.bin", "rb");
-fread(back, sizeof(int), 5, fp);
+size_t count = fread(loaded, sizeof(struct Record), 5, fp);
 fclose(fp);
 ```
 
-### Navigation
+**warning:** binary files with structs have portability issues. struct padding, integer endianness, and floating-point format can differ between systems. for portable binary formats, use fixed-width types and explicit serialization.
+
+### File Navigation
 
 ```c
-fseek(fp, 0, SEEK_SET);    // go to start
-fseek(fp, 0, SEEK_END);    // go to end
-fseek(fp, -10, SEEK_CUR);  // go 10 bytes back from current position
-long pos = ftell(fp);       // get current position
-rewind(fp);                 // back to start (same as fseek SEEK_SET 0)
+fseek(fp, 0, SEEK_SET);     // go to start of file
+fseek(fp, 0, SEEK_END);     // go to end
+fseek(fp, -10, SEEK_CUR);   // go back 10 bytes from current position
+fseek(fp, 100, SEEK_SET);   // go to byte 100
 
-// get file size:
-fseek(fp, 0, SEEK_END);
-long size = ftell(fp);
-rewind(fp);
+long pos = ftell(fp);        // get current position in bytes
+rewind(fp);                  // equivalent to fseek(fp, 0, SEEK_SET)
+
+int at_end = feof(fp);       // non-zero if at end of file
+int error = ferror(fp);      // non-zero if an error occurred
+```
+
+### Error Handling with perror and errno
+
+`perror` prints an error message based on the current value of `errno` (a global error code set by system calls):
+
+```c
+FILE *fp = fopen("nonexistent.txt", "r");
+if (!fp) {
+    perror("fopen");
+    // prints: "fopen: No such file or directory"
+    // format: "prefix: error description based on errno"
+}
 ```
 
 ---
 
 ## The Preprocessor
 
-runs before the compiler. handles every line starting with `#`. basically doing smart find-and-replace before the compiler sees your code.
+the preprocessor runs before the compiler. it does purely textual manipulation — no type checking, no scoping, no real language features. every line starting with `#` is a preprocessor directive.
 
-### #include
+### #include — Paste File Contents
 
 ```c
-#include <stdio.h>     // look in system headers
-#include "myfile.h"    // look in current directory first
+#include <stdio.h>     // search system include directories
+#include "myheader.h"  // search current directory first, then system
 ```
 
-literally pastes the file contents at that line.
+literally pastes the file contents at that location. if `stdio.h` is 500 lines, your file effectively becomes 500 lines longer before the compiler sees it.
 
-### #define
+### #define — Text Substitution
 
 ```c
 #define PI        3.14159265358979
-#define MAX_SIZE  1024
-#define VERSION   "2.0.1"
+#define MAX_BUF   1024
+#define GREETING  "Hello, World!"
 
-// function-like macros
-#define SQUARE(x)     ((x) * (x))
-#define MAX(a, b)     ((a) > (b) ? (a) : (b))
-#define ARRAY_LEN(a)  (sizeof(a) / sizeof((a)[0]))
+// usage: every occurrence of PI is replaced with 3.14159265358979
+double area = PI * r * r;
+// becomes:
+double area = 3.14159265358979 * r * r;
 ```
 
-**always parenthesize macro arguments and the full expression.** no parens:
-```
-SQUARE(1+2) → 1+2 * 1+2 = 5  ← WRONG
-SQUARE(1+2) → (1+2) * (1+2) = 9  ← correct with parens
+**function-like macros:**
+```c
+#define SQUARE(x)         ((x) * (x))
+#define MAX(a, b)         ((a) > (b) ? (a) : (b))
+#define ARRAY_LEN(arr)    (sizeof(arr) / sizeof((arr)[0]))
 ```
 
-macros have no type checking, no scoping. they're text substitution. prefer `const` for constants and `inline` functions for simple calcs. macros shine when you need things that genuinely can't be functions (like `ARRAY_LEN` above — you can't pass a type to a function).
+**always parenthesize everything in macros:**
+```c
+#define BAD_SQUARE(x)  x * x
+#define GOOD_SQUARE(x) ((x) * (x))
+
+BAD_SQUARE(1 + 2)   // expands to: 1 + 2 * 1 + 2 = 5  WRONG
+GOOD_SQUARE(1 + 2)  // expands to: ((1 + 2) * (1 + 2)) = 9  CORRECT
+```
+
+the preprocessor doesn't know about operator precedence — it's pure text substitution. parentheses make the expansion correct regardless of context.
+
+**macro gotchas:**
+
+double evaluation — a macro argument that has side effects gets evaluated multiple times:
+```c
+MAX(i++, j++)    // expands to: ((i++) > (j++) ? (i++) : (j++))
+                 // i or j is incremented TWICE — not what you want
+```
+
+this is why `inline` functions (C99) are safer for function-like macros — they evaluate arguments once:
+```c
+static inline int max(int a, int b) { return a > b ? a : b; }
+```
 
 ### Conditional Compilation
 
-```c
-#define DEBUG 1
+include or exclude code at compile time:
 
+```c
 #ifdef DEBUG
     printf("debug: x = %d\n", x);
 #endif
@@ -1359,65 +2356,92 @@ macros have no type checking, no scoping. they're text substitution. prefer `con
     #define BUFFER_SIZE 512
 #endif
 
-// platform stuff
-#if defined(_WIN32)
-    #include <windows.h>
-#elif defined(__linux__) || defined(__APPLE__)
-    #include <unistd.h>
+#if defined(__linux__)
+    // Linux-specific code
+#elif defined(__APPLE__)
+    // macOS-specific code
+#elif defined(_WIN32)
+    // Windows-specific code
+#else
+    #error "Unsupported platform"
 #endif
+```
+
+**compile with -D to define macros from command line:**
+```bash
+gcc -DDEBUG -o program program.c   # defines DEBUG
 ```
 
 ### Predefined Macros
 
 ```c
-__FILE__      // current filename as a string
-__LINE__      // current line number
-__DATE__      // "Mar 14 2026"
-__TIME__      // "12:34:56"
-__func__      // current function name (C99)
+__FILE__      // current filename as a string: "main.c"
+__LINE__      // current line number as int: 42
+__DATE__      // compilation date: "Mar 14 2026"
+__TIME__      // compilation time: "14:30:00"
+__func__      // current function name (C99): "main"
+__STDC__      // 1 if standard C
+__STDC_VERSION__  // C standard version: 201710L for C17
 ```
 
-debug logging macro:
+useful for debug logging:
 ```c
 #define LOG(fmt, ...) \
-    fprintf(stderr, "[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+    fprintf(stderr, "[%s:%d %s] " fmt "\n", \
+            __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 
-LOG("starting up");           // [main.c:15] starting up
-LOG("x=%d y=%d", x, y);      // [main.c:20] x=5 y=10
+LOG("entering loop");
+LOG("x = %d, y = %d", x, y);
+// prints: [main.c:42 process_data] x = 5, y = 10
+```
+
+### Stringification and Token Pasting
+
+```c
+#define STRINGIFY(x)  #x    // turns x into a string literal
+#define CONCAT(a, b)  a##b  // concatenates two tokens
+
+STRINGIFY(hello)    // "hello"
+STRINGIFY(42)       // "42"
+CONCAT(foo, bar)    // foobar (as an identifier)
+
+// useful for debugging:
+#define PRINT_VAR(x) printf(#x " = %d\n", x)
+int count = 42;
+PRINT_VAR(count);   // prints: count = 42
 ```
 
 ---
 
 ## Header Files and Multi-File Projects
 
-### Why Split Files
-
-once you're past ~200 lines, one file gets impossible to navigate. splitting means:
-- easier to find stuff
-- only recompile what changed
-- multiple people can work on different files
-- reuse code across projects
+as programs grow, splitting across multiple `.c` files becomes necessary. header files (`.h`) are the glue.
 
 ### The Pattern
 
-**vec2.h** — the public interface, declarations only:
+**vec2.h** — declarations. the public interface. what other files need to know:
 ```c
 #ifndef VEC2_H
 #define VEC2_H
 
+// type definitions
 typedef struct {
     double x, y;
 } Vec2;
 
+// function declarations (prototypes)
 Vec2   vec2_add(Vec2 a, Vec2 b);
 Vec2   vec2_scale(Vec2 v, double s);
 double vec2_length(Vec2 v);
 void   vec2_print(Vec2 v);
 
-#endif
+// constants
+#define VEC2_ZERO  ((Vec2){0.0, 0.0})
+
+#endif  // VEC2_H
 ```
 
-**vec2.c** — the actual implementation:
+**vec2.c** — definitions. the actual implementation:
 ```c
 #include "vec2.h"
 #include <stdio.h>
@@ -1440,45 +2464,81 @@ void vec2_print(Vec2 v) {
 }
 ```
 
-**main.c:**
+**main.c** — uses it:
 ```c
 #include <stdio.h>
 #include "vec2.h"
 
 int main(void) {
     Vec2 a = {3.0, 4.0};
-    printf("length: %.2f\n", vec2_length(a));  // 5.00
+    Vec2 b = {1.0, 2.0};
+    Vec2 sum = vec2_add(a, b);
+    vec2_print(sum);                             // (4.00, 6.00)
+    printf("length: %.2f\n", vec2_length(a));   // 5.00
     return 0;
 }
 ```
 
+compile:
 ```bash
 gcc -Wall -Wextra -std=c17 main.c vec2.c -o program -lm
+# -lm links the math library (needed for sqrt)
 ```
 
 ### Include Guards
 
-without these, double-including a header gives you "duplicate declaration" errors:
+without include guards, including the same header twice (common in large projects) causes duplicate declarations:
 
 ```c
-// in every .h file:
 #ifndef VEC2_H
 #define VEC2_H
 
-// ... all your declarations ...
+// ... contents ...
 
 #endif
 ```
 
-or the simpler `#pragma once` — not technically in the standard but every compiler supports it and it's cleaner:
+how it works: first time `vec2.h` is included, `VEC2_H` isn't defined, so the contents are processed. `VEC2_H` gets defined. second time, `VEC2_H` is already defined, so the `#ifndef` block is skipped entirely.
+
+modern alternative (not in the C standard but universally supported):
 ```c
 #pragma once
-// ... declarations ...
+// contents...
 ```
 
-### Makefiles
+simpler and can't have typos. use either one consistently.
 
-stop retyping compile commands every time bro. use a Makefile:
+### static and extern — Controlling Visibility
+
+**`static` on a function or global variable** restricts its visibility to the current file. it won't be accessible from other `.c` files, even if they try to declare it with `extern`:
+
+```c
+// internal.c
+static void helper(void) { ... }   // only visible in internal.c
+static int counter = 0;            // only visible in internal.c
+
+void public_function(void) {       // visible everywhere (no static)
+    helper();
+    counter++;
+}
+```
+
+use `static` for implementation details that don't belong in the public API. it prevents name collisions across files and makes the module's interface clearer.
+
+**`extern`** declares that a variable or function exists in another file:
+
+```c
+// config.c
+int debug_level = 0;   // defined here
+
+// main.c
+extern int debug_level;  // declaration — "this exists somewhere else"
+debug_level = 2;         // modify it
+```
+
+for functions, `extern` is usually implicit — function declarations are already treated as extern. you mostly use `extern` for global variables shared across files (though global mutable state is generally something to avoid).
+
+### Makefiles
 
 ```makefile
 CC     = gcc
@@ -1500,32 +2560,29 @@ clean:
 .PHONY: clean
 ```
 
-`make` builds it, only recompiling changed files. `make clean` wipes compiled outputs.
+`make` builds only what changed. if you modify `vec2.c`, only `vec2.o` is recompiled and the final link step reruns. `main.o` is untouched. for large projects this matters — you don't want to recompile 200 files because you changed one.
 
 ---
 
 ## Modern C
 
-C is not frozen in 1989. it gets updated: C99 (1999), C11 (2011), C17 (2017), C23 (2023). here's what was added that you actually need to know.
+### C99 — the big update (1999)
 
-### C99 — the big one
+**`//` single-line comments** — didn't exist in original C89. only `/* */` was available.
 
-**`//` comments** — yeah, single-line comments didn't exist in original C. only `/* */` existed.
-
-**declare variables anywhere** — C89 required all declarations at the top of a block. C99 says declare wherever:
+**declare variables anywhere** — C89 required all variable declarations at the top of a block before any other statements:
 ```c
-// old C89 style
+// C89 — must declare at top
 void foo(void) {
-    int i;
-    int result;
-    i = 5;
-    result = i * 2;
+    int i, j, result;
+    /* ... */
+    for (i = 0; i < 10; i++) { }
 }
 
-// C99 — declare when you need it
+// C99 — declare when you need them
 void foo(void) {
     for (int i = 0; i < 10; i++) {   // i declared right here
-        int square = i * i;           // totally fine
+        int square = i * i;           // fine
     }
 }
 ```
@@ -1533,124 +2590,113 @@ void foo(void) {
 **`<stdbool.h>` — boolean type:**
 ```c
 #include <stdbool.h>
-
 bool found = false;
 bool valid = true;
-
-if (found) printf("found it\n");
-// true = 1, false = 0 under the hood
+// true = 1, false = 0 underneath
 ```
 
-**compound literals** — create anonymous struct/array values inline:
+**compound literals** — create anonymous struct or array values inline:
 ```c
 typedef struct { int x, y; } Point;
 
-void draw(Point p) { printf("(%d,%d)\n", p.x, p.y); }
+void draw_point(Point p) { printf("(%d,%d)\n", p.x, p.y); }
 
-draw((Point){3, 4});             // pass struct literal directly
-draw((Point){.x=5, .y=7});      // with designated initializers
+draw_point((Point){3, 4});        // pass a struct literal directly
+draw_point((Point){.x=5, .y=7}); // with designated initializers
 
-int *arr = (int[]){1, 2, 3, 4}; // anonymous array literal
+int *arr = (int[]){1, 2, 3, 4};  // anonymous array
 ```
 
 **designated initializers** for arrays:
 ```c
-int arr[10] = {[0]=1, [5]=10, [9]=99};  // other elements are 0
+int arr[10] = {[0] = 1, [5] = 10, [9] = 99};
+// [0] = 1, [1-4] = 0, [5] = 10, [6-8] = 0, [9] = 99
 ```
 
-**flexible array members:**
-```c
-typedef struct {
-    int length;
-    int data[];   // must be last — size determined at alloc time
-} IntBuf;
-
-IntBuf *buf = malloc(sizeof(IntBuf) + 10 * sizeof(int));
-buf->length = 10;
-buf->data[0] = 42;
-free(buf);
-```
-
-**`restrict` keyword** — tells the compiler two pointers don't overlap, enables better optimization:
+**`restrict` keyword** — tells the compiler two pointers don't alias (point to overlapping memory). enables better optimization:
 ```c
 void copy(int * restrict dest, const int * restrict src, size_t n) {
     for (size_t i = 0; i < n; i++) dest[i] = src[i];
 }
+// compiler can optimize this more aggressively knowing dest and src don't overlap
 ```
 
-### C11 — worth knowing
+**`<stdint.h>` and `<inttypes.h>`** — exact-width types (covered earlier) and format macros:
+```c
+#include <inttypes.h>
+int64_t val = 1234567890LL;
+printf("%" PRId64 "\n", val);   // PRId64 expands to the right format specifier
+```
 
-**`static_assert`** — compile-time assertions:
+**variable-length arrays** — array size can be a runtime variable (covered earlier).
+
+**`__func__`** — predefined identifier with current function name.
+
+### C11 additions (2011)
+
+**`_Static_assert` / `static_assert`** — compile-time assertions:
 ```c
 #include <assert.h>
 
-static_assert(sizeof(int) == 4, "need 32-bit ints");
-static_assert(sizeof(void*) == 8, "need 64-bit pointers");
-// if condition is false: COMPILE ERROR with your message
-// not a runtime crash. a compile error.
+static_assert(sizeof(int) == 4, "this code assumes 32-bit ints");
+static_assert(sizeof(void*) == 8, "this code requires a 64-bit system");
+// if false: COMPILE ERROR with your message
+// not a runtime crash. a compiler error.
 ```
 
-**`_Noreturn` / `noreturn`** — for functions that never return:
+invaluable for catching platform assumption violations at compile time.
+
+**`_Noreturn` / `noreturn`** — marks functions that never return:
 ```c
 #include <stdnoreturn.h>
 
-noreturn void die(const char *msg) {
-    fprintf(stderr, "fatal: %s\n", msg);
+noreturn void fatal(const char *msg) {
+    fprintf(stderr, "FATAL: %s\n", msg);
     exit(1);
+    // compiler knows control never reaches here
+    // enables better optimization and better warnings
 }
 ```
 
-**`_Generic`** — compile-time type dispatch:
+**`_Generic`** — compile-time type-based selection. enables type-safe macros:
 ```c
-#define type_name(x) _Generic((x),  \
-    int:    "int",                   \
-    float:  "float",                 \
-    double: "double",                \
-    char*:  "string",                \
-    default: "unknown"               \
+#define print_val(x) _Generic((x),    \
+    int:    printf("%d\n",    x),      \
+    float:  printf("%f\n",    x),      \
+    double: printf("%lf\n",   x),      \
+    char*:  printf("%s\n",    x),      \
+    default: printf("unknown\n")       \
 )
 
-printf("%s\n", type_name(42));      // int
-printf("%s\n", type_name(3.14f));   // float
-printf("%s\n", type_name("yo"));    // string
+print_val(42);       // prints int: 42
+print_val(3.14);     // prints double: 3.140000
+print_val("hello");  // prints string: hello
 ```
 
-compiler picks the branch at compile time based on the type. the other branches don't exist in the binary.
+the compiler picks the matching branch based on the type of `x`. unchosen branches are eliminated entirely — they don't even need to compile.
 
 **anonymous struct/union members (C11):**
 ```c
 typedef struct {
     int type;
-    union {           // anonymous — members accessed directly on parent struct
+    union {         // anonymous — members accessed directly
         int   i;
         float f;
-        char  s[32];
     };
-} Variant;
+} Value;
 
-Variant v;
+Value v;
 v.type = 0;
-v.i = 42;   // direct access, no v.anon.i
+v.i = 42;    // direct access, no v.unnamed_union.i
 ```
 
-**atomics (`<stdatomic.h>`)** — thread-safe operations:
-```c
-#include <stdatomic.h>
-
-atomic_int counter = 0;
-
-atomic_fetch_add(&counter, 1);    // counter++ thread-safely
-int val = atomic_load(&counter);  // read thread-safely
-atomic_store(&counter, 0);        // write thread-safely
-```
-
-**threads (`<threads.h>`):**
+**`<threads.h>` — standard threading:**
 ```c
 #include <threads.h>
 
 int worker(void *arg) {
     printf("thread running\n");
-    return 0;
+    return thrd_success;
 }
 
 thrd_t t;
@@ -1658,65 +2704,193 @@ thrd_create(&t, worker, NULL);
 thrd_join(t, NULL);
 ```
 
-### C17 — mostly bugfixes
-
-C17 was a cleanup/bugfix release for C11. main takeaway: `-std=c17` is the current stable standard to target. use it.
-
-### C23 — the new stuff
-
-**`nullptr`** — null pointer constant with its own type:
+**`<stdatomic.h>` — atomic operations:**
 ```c
-int *p = nullptr;   // cleaner than NULL
+#include <stdatomic.h>
+
+atomic_int counter = 0;
+
+// these are safe to call from multiple threads simultaneously:
+atomic_fetch_add(&counter, 1);
+int val = atomic_load(&counter);
+atomic_store(&counter, 0);
 ```
 
-**`#embed`** — embed file bytes at compile time:
+### C17 (2017)
+
+C17 was a bugfix/clarification release. the main practical takeaway: `-std=c17` is the current stable target. use it.
+
+### C23 (2023)
+
+**`nullptr`** — dedicated null pointer constant with its own type:
 ```c
-const unsigned char image[] = {
-#embed "logo.png"   // raw bytes of the file baked into your binary
+int *p = nullptr;   // cleaner than NULL, has type nullptr_t
+```
+
+**`#embed`** — embed file contents at compile time:
+```c
+const unsigned char image_data[] = {
+#embed "logo.png"   // raw bytes of the PNG baked into the binary
 };
+const size_t image_size = sizeof(image_data);
 ```
 
-**`typeof`** — get the type of an expression:
+**`typeof` / `typeof_unqual`:**
 ```c
 int x = 5;
-typeof(x) y = 10;   // y is int
+typeof(x) y = 10;   // y is the same type as x (int)
 
-// clean swap macro using typeof:
-#define SWAP(a, b) do {       \
-    typeof(a) _tmp = (a);     \
-    (a) = (b);                \
-    (b) = _tmp;               \
+// safe swap macro — works for any type
+#define SWAP(a, b) do {          \
+    typeof(a) _tmp = (a);        \
+    (a) = (b);                   \
+    (b) = _tmp;                  \
 } while(0)
 ```
 
-**`[[nodiscard]]`, `[[deprecated]]`, `[[maybe_unused]]`:**
+**`[[nodiscard]]`, `[[deprecated]]`, `[[maybe_unused]]`** — standard attributes:
 ```c
 [[nodiscard]] int important_result(void) { return 42; }
-// compiler warns if you call this and throw away the return value
+// compiler warns if caller ignores the return value
 
-[[deprecated("use new_api() instead")]]
-void old_api(void) { }
-// compiler warns every time someone calls this
+[[deprecated("use new_func() instead")]]
+void old_func(void) { }
 
-void func([[maybe_unused]] int debug_param) {
-    // no unused parameter warning
+void process([[maybe_unused]] int debug_param) {
+    // no warning about unused parameter
 }
 ```
 
-**binary literals (now official in C23):**
+**binary integer literals (official):**
 ```c
-int flags = 0b10110100;   // was a GCC extension before, now standard
+int flags = 0b10110100;   // was a GCC extension, now C23 standard
 ```
+
+---
+
+## Undefined Behavior
+
+this section gets its own chapter because it's genuinely the scariest and most misunderstood aspect of C.
+
+### What Undefined Behavior Means
+
+the C standard explicitly says that certain operations have "undefined behavior" (UB). this doesn't mean "implementation-specific behavior" or "usually crashes". it means: the standard makes absolutely no promise about what happens. the program can:
+- produce the "expected" result
+- produce a different but consistent result
+- produce a random result
+- crash
+- corrupt memory silently
+- format your hard drive (technically permitted under the standard)
+- work perfectly in debug builds and fail in optimized builds
+
+and here's what makes it genuinely dangerous: **the compiler can assume undefined behavior never happens.** optimizations routinely exploit this assumption. code that appears to do one thing in an unoptimized build does something completely different when compiled with `-O2`.
+
+### Common Forms of Undefined Behavior
+
+**1. Signed integer overflow:**
+```c
+int x = INT_MAX;   // 2147483647
+int y = x + 1;     // UNDEFINED BEHAVIOR — not guaranteed to give -2147483648
+```
+
+the compiler, knowing that signed overflow is UB, can assume `x + 1 > x` is always true — eliminating bounds checks, loop conditions, and other code that depends on overflow happening.
+
+**2. Out-of-bounds array access:**
+```c
+int arr[5];
+arr[5] = 10;    // UB — might corrupt adjacent memory
+arr[-1] = 0;    // UB — writes before the array
+```
+
+**3. Dereferencing a null or invalid pointer:**
+```c
+int *p = NULL;
+*p = 5;            // UB — always a crash in practice, but UB per standard
+
+int *q = (int*)0xDEADBEEF;  // random invalid address
+*q = 5;            // UB — crash
+```
+
+**4. Use after free:**
+```c
+int *p = malloc(sizeof(int));
+free(p);
+*p = 42;    // UB — memory was freed, might be reused, might be corrupted
+```
+
+**5. Reading uninitialized variables:**
+```c
+int x;
+printf("%d\n", x);   // UB — x's value is indeterminate
+```
+
+**6. Accessing a string beyond its terminator:**
+```c
+char s[] = "hi";   // s[0]='h', s[1]='i', s[2]='\0'
+printf("%c\n", s[3]);   // UB — reads past the string
+```
+
+**7. Modifying a string literal:**
+```c
+char *s = "hello";
+s[0] = 'H';   // UB — string literal is in read-only memory
+```
+
+**8. Violating strict aliasing:**
+```c
+int x = 42;
+float *fp = (float *)&x;   // UB — accessing int through float pointer
+float val = *fp;           // strictly aliasing violation
+```
+
+**9. Integer operations — shift amount out of range:**
+```c
+int x = 1;
+int y = x << 32;   // UB if shifting by >= width of the type
+```
+
+**10. Data races in multi-threaded code:**
+```c
+// Thread 1: x = 1;
+// Thread 2: y = x;
+// without synchronization — UB
+```
+
+### The Real-World Impact — an Example
+
+```c
+int table[4] = {0, 1, 2, 3};
+
+int f(int i) {
+    if (table[i] == 0) return 0;
+    return table[i];
+}
+```
+
+compiled with `gcc -O2`, some compilers may transform this because: `table[i] == 0` and `table[i]` both read the same array element. without any modification between them, they must be the same value. so `if (table[i] == 0) return 0; return table[i]` becomes `return table[i]`. the bounds check is gone.
+
+but if `i` is out of bounds (UB), the compiler was allowed to do this transformation because it assumed UB doesn't happen.
+
+### How to Detect UB
+
+use `-fsanitize=address,undefined` during development. it instruments your code to detect these at runtime:
+
+```bash
+gcc -fsanitize=address,undefined -g -o program program.c
+./program
+```
+
+when UB occurs, it prints exactly what happened and on which line. use this on every project. remove it for production builds.
 
 ---
 
 ## Error Handling
 
-C has no exceptions. you handle errors manually. few patterns for doing it.
+C doesn't have exceptions. error handling is manual. here are the patterns.
 
-### errno
+### errno — the global error code
 
-many standard functions set `errno` from `<errno.h>` when they fail:
+system calls and many standard library functions set `errno` (from `<errno.h>`) when they fail. check it immediately after a failure:
 
 ```c
 #include <errno.h>
@@ -1724,113 +2898,181 @@ many standard functions set `errno` from `<errno.h>` when they fail:
 
 FILE *fp = fopen("missing.txt", "r");
 if (fp == NULL) {
+    // errno is set to ENOENT (no such file or directory)
     printf("error %d: %s\n", errno, strerror(errno));
+    // strerror converts error code to readable message
     perror("fopen");   // prints "fopen: No such file or directory"
 }
 ```
 
-common values: `ENOENT` (no such file), `EACCES` (permission denied), `ENOMEM` (out of memory), `EINVAL` (invalid argument).
+**important:** errno is only meaningful immediately after a failing function. any subsequent function call might change it. save it if you need it later:
 
-**errno only means something immediately after a failure.** any subsequent function call might change it.
+```c
+int saved_errno = errno;  // save before calling anything else
+```
+
+common errno values:
+- `ENOENT` — no such file or directory
+- `EACCES` — permission denied
+- `ENOMEM` — out of memory
+- `EINVAL` — invalid argument
+- `EEXIST` — file already exists
+- `ENOTSUP` — operation not supported
+- `ETIMEDOUT` — connection timed out
 
 ### Return Value Patterns
 
 most C functions signal errors through their return value:
 
 ```c
-// return NULL on failure
-FILE *fp = fopen(...);
-if (!fp) { handle_error(); }
+// NULL on failure (pointer-returning functions)
+FILE *fp = fopen(path, "r");
+if (!fp) { /* failed */ }
 
-// return -1 on failure (POSIX style)
-int fd = open("file", O_RDONLY);
-if (fd == -1) { perror("open"); }
+// negative on failure (POSIX style)
+int fd = open(path, O_RDONLY);
+if (fd < 0) { /* failed, check errno */ }
 
-// return 0 on success, positive on error (pthread style)
-int err = pthread_create(&t, NULL, func, arg);
-if (err) { fprintf(stderr, "%s\n", strerror(err)); }
+// 0 on success, non-zero on failure
+int result = pthread_create(&thread, NULL, func, arg);
+if (result != 0) { fprintf(stderr, "error: %s\n", strerror(result)); }
+
+// special sentinel values (EOF = -1 for fgetc)
+int c = fgetc(fp);
+if (c == EOF) { /* end of file or error */ }
 ```
 
 ### Custom Error Codes
 
-for your own libraries:
+define an enum for your error codes:
 
 ```c
 typedef enum {
-    OK = 0,
+    ERR_OK           =  0,
     ERR_INVALID_ARG  = -1,
-    ERR_OUT_OF_MEMORY = -2,
+    ERR_OUT_OF_MEM   = -2,
     ERR_NOT_FOUND    = -3,
+    ERR_PERMISSION   = -4,
+    ERR_IO           = -5,
 } Error;
 
-const char *err_str(Error e) {
+const char *error_string(Error e) {
     switch (e) {
-        case OK:               return "ok";
+        case ERR_OK:           return "success";
         case ERR_INVALID_ARG:  return "invalid argument";
-        case ERR_OUT_OF_MEMORY: return "out of memory";
+        case ERR_OUT_OF_MEM:   return "out of memory";
         case ERR_NOT_FOUND:    return "not found";
+        case ERR_PERMISSION:   return "permission denied";
+        case ERR_IO:           return "I/O error";
         default:               return "unknown error";
     }
 }
+
+Error load_config(const char *path, Config *out) {
+    if (!path || !out) return ERR_INVALID_ARG;
+
+    FILE *fp = fopen(path, "r");
+    if (!fp) return ERR_NOT_FOUND;
+
+    // ... parse config ...
+    fclose(fp);
+    return ERR_OK;
+}
+
+Error err = load_config("config.txt", &cfg);
+if (err != ERR_OK) {
+    fprintf(stderr, "load_config failed: %s\n", error_string(err));
+    return 1;
+}
 ```
 
-### assert
+### assert — for programmer errors
 
-for programmer mistakes — things that should never happen. not for handling user input:
+`assert(condition)` checks a condition that should never be false. if it is, the program prints the failing expression, file, and line number, then calls `abort()`:
 
 ```c
 #include <assert.h>
 
 void process(int *data, int len) {
-    assert(data != NULL);   // if this fires, it's a bug in the caller
-    assert(len > 0);
+    assert(data != NULL);     // programmer error if NULL passed
+    assert(len > 0);          // programmer error if non-positive length
+    // ...
 }
 ```
 
-false condition = program prints location and crashes. define `NDEBUG` to disable in release builds: `gcc -DNDEBUG ...`.
+asserts are for *invariants* — things that should never happen in correct code. they're documentation that compiles and checks itself. define `NDEBUG` to disable them in release builds: `gcc -DNDEBUG ...`.
+
+never use assert for user input validation — the user can trigger them legitimately. asserts are for conditions that indicate your code itself has a bug.
+
+### Cleanup with goto
+
+when a function acquires multiple resources and an error occurs partway through, goto provides clean cleanup:
+
+```c
+int load_and_process(const char *path) {
+    FILE *fp = NULL;
+    char *buf = NULL;
+    int *data = NULL;
+    int result = -1;
+
+    fp = fopen(path, "r");
+    if (!fp) goto cleanup;
+
+    buf = malloc(BUFFER_SIZE);
+    if (!buf) goto cleanup;
+
+    data = malloc(MAX_ITEMS * sizeof(int));
+    if (!data) goto cleanup;
+
+    // ... do work ...
+    result = 0;  // success
+
+cleanup:
+    free(data);   // free(NULL) is safe — always fine even if not allocated
+    free(buf);
+    if (fp) fclose(fp);
+    return result;
+}
+```
+
+this pattern is common in the linux kernel. `free(NULL)` is defined to be a no-op, so you can call it unconditionally.
 
 ---
 
 ## Bit Manipulation Deep Dive
 
-worth knowing if you'll touch hardware, networking, compression, or binary file formats.
+### Two's Complement in Depth
 
-### Number Representations
+all modern computers use two's complement for signed integers. knowing this explains a lot of C's behavior.
+
+for an n-bit number, the range is `-2^(n-1)` to `2^(n-1) - 1`. for 32-bit int: -2,147,483,648 to 2,147,483,647.
+
+the key property: negation = flip all bits + 1.
+
+```
+ 5 in 32-bit: 00000000 00000000 00000000 00000101
+flip all:     11111111 11111111 11111111 11111010
+add 1:        11111111 11111111 11111111 11111011
+= -5
+```
+
+consequences you'll hit:
+- `INT_MIN` has no positive counterpart: `-INT_MIN == INT_MIN` (overflow)
+- `-1` as unsigned int: all bits set = `UINT_MAX`
+- signed right shift of negative fills with 1s (sign extension) on most machines, but is implementation-defined in C
+
+### Useful Bit Tricks
 
 ```c
-int a = 255;        // decimal
-int b = 0xFF;       // hex — same value
-int c = 0377;       // octal — same value (leading 0 = octal, don't accidentally do this)
-int d = 0b11111111; // binary — same value (C23 / GCC extension)
-```
-
-### Two's Complement
-
-how negative numbers work in binary. to negate: flip all bits, add 1:
-```
- 5 in 8-bit: 00000101
-flip bits:   11111010
-add 1:       11111011  ← that's -5
-```
-
-this is why:
-- signed overflow is undefined behavior — wrapping is NOT guaranteed
-- `-1` as unsigned is all ones / max value
-- right-shifting a negative number fills with 1s (sign extension)
-
-### Bit Tricks
-
-```c
-// is n a power of 2?
-bool is_pow2(unsigned n) {
+// check if n is a power of 2
+bool is_power_of_two(unsigned n) {
     return n > 0 && (n & (n - 1)) == 0;
 }
-// power of 2 has exactly one bit: 0b1000
-// n-1 flips the lower bits:       0b0111
-// AND = 0 for any power of 2
+// explanation: powers of 2 have exactly one bit set
+// 0b1000 & 0b0111 = 0 — AND is zero for any power of 2
 
-// round up to next power of 2
-unsigned next_pow2(unsigned n) {
+// next power of 2 >= n
+uint32_t next_pow2(uint32_t n) {
     n--;
     n |= n >> 1;
     n |= n >> 2;
@@ -1840,125 +3082,189 @@ unsigned next_pow2(unsigned n) {
     return n + 1;
 }
 
-// count set bits
-int popcount(unsigned n) {
-    int c = 0;
-    while (n) { c += n & 1; n >>= 1; }
-    return c;
+// count set bits (popcount / Hamming weight)
+int count_bits(unsigned n) {
+    int count = 0;
+    while (n) {
+        count += n & 1;
+        n >>= 1;
+    }
+    return count;
 }
-// GCC built-in: __builtin_popcount(n)
+// gcc/clang built-in (single CPU instruction): __builtin_popcount(n)
 
-// get/set/clear/toggle bit n
-int  get_bit(int v, int n)    { return (v >> n) & 1; }
-int  set_bit(int v, int n)    { return v |  (1 << n); }
-int  clr_bit(int v, int n)    { return v & ~(1 << n); }
-int  tog_bit(int v, int n)    { return v ^  (1 << n); }
+// get, set, clear, toggle a specific bit
+int bit_get(int val, int pos)    { return (val >> pos) & 1; }
+int bit_set(int val, int pos)    { return val |  (1 << pos); }
+int bit_clear(int val, int pos)  { return val & ~(1 << pos); }
+int bit_toggle(int val, int pos) { return val ^  (1 << pos); }
 
-// extract bits at position start, length count
-int  extract(int v, int start, int count) {
-    return (v >> start) & ((1 << count) - 1);
+// extract a field: bits from position 'start', of length 'len'
+int bit_extract(int val, int start, int len) {
+    return (val >> start) & ((1 << len) - 1);
 }
 
-// XOR swap (no temp variable)
+// rotate bits left (no built-in in C, but common pattern)
+uint32_t rotate_left(uint32_t val, int n) {
+    return (val << n) | (val >> (32 - n));
+}
+
+// XOR swap — swap two variables without a temp
 a ^= b;
 b ^= a;
 a ^= b;
+// works because: a^a = 0 and a^0 = a
+// not actually useful today — compilers handle swap better
+
+// check if two integers have opposite signs
+bool opposite_signs(int a, int b) {
+    return (a ^ b) < 0;   // XOR of opposite signs has the sign bit set
+}
+
+// absolute value without branching
+int abs_val(int n) {
+    int mask = n >> 31;         // all 1s if negative, all 0s if positive
+    return (n + mask) ^ mask;   // if negative: two's complement negation; else: identity
+}
 ```
+
+### Bit Fields in Structs
+
+structs can have members with specified bit widths:
+
+```c
+typedef struct {
+    unsigned int red   : 5;   // 5 bits — 0-31
+    unsigned int green : 6;   // 6 bits — 0-63  (green gets more bits because human eye)
+    unsigned int blue  : 5;   // 5 bits — 0-31
+} RGB565;                      // total: 16 bits = 2 bytes
+
+RGB565 color;
+color.red   = 31;   // max red
+color.green = 63;   // max green
+color.blue  = 0;    // no blue
+
+printf("size: %zu\n", sizeof(RGB565));   // probably 4 (alignment)
+```
+
+bit fields are useful for hardware registers, packed protocol headers, and memory-constrained embedded systems. caveats: layout is implementation-defined, can't take the address of a bit field, padding between fields is possible.
 
 ---
 
 ## Common Pitfalls
 
-these are the things that will catch you off guard. not because you're bad at this — because C is genuinely designed to let you shoot yourself in the foot without flinching.
+### Uninitialized Variables
 
-**uninitialized variables:**
 ```c
 int sum;
-for (int i = 0; i < 5; i++) sum += i;  // sum starts as garbage
-int sum = 0;  // fix — always initialize
+for (int i = 0; i < 5; i++) sum += i;   // sum starts as garbage + 0 + 1 + ...
+// fix:
+int sum = 0;
 ```
 
-**integer division when you want decimals:**
+### Integer Division Truncation
+
 ```c
-double avg = total / count;          // both ints → truncated before converting
-double avg = (double)total / count;  // cast BEFORE dividing
+double avg = total / count;   // if both int, integer division happens first
+double avg = (double)total / count;   // cast BEFORE dividing
 ```
 
-**signed/unsigned comparison:**
+### Off-by-One
+
 ```c
-int i = 0;
-if (i < sizeof(arr)) { }           // warning — signed vs unsigned
-if ((size_t)i < sizeof(arr)) { }   // correct
+char str[] = "hello";  // indices 0-4 for chars, 5 is '\0'
+for (int i = 0; i <= 5; i++) { }   // i=5 accesses '\0', i=6 is UB
+for (int i = 0; i < 5; i++) { }    // correct
+
+int arr[5];
+for (int i = 0; i <= 5; i++) arr[i] = 0;    // arr[5] is out of bounds
+for (int i = 0; i < 5; i++) arr[i] = 0;     // correct
 ```
 
-**modifying string literals:**
+### strlen in Loop Condition
+
 ```c
-char *s = "hello";
-s[0] = 'H';     // segfault
-
-char s[] = "hello";
-s[0] = 'H';     // fine, it's a writable array
+for (int i = 0; i < strlen(str); i++) { }   // strlen is O(n), called every iteration
+                                              // loop becomes O(n^2)
+size_t len = strlen(str);
+for (size_t i = 0; i < len; i++) { }        // compute once
 ```
 
-**scanf leaving newlines in the buffer:**
+### Signed/Unsigned Comparison
+
+```c
+int i = -1;
+if (i < sizeof(arr)) { }   // WARNING — sizeof returns size_t (unsigned)
+                             // -1 converted to unsigned = huge number
+                             // comparison is wrong
+
+if ((size_t)i < sizeof(arr)) { }  // correct
+if (i >= 0 && (size_t)i < sizeof(arr)) { }  // if i could be negative
+```
+
+### scanf Leaves Newlines in Buffer
+
 ```c
 int n;
-char str[50];
+char buf[50];
+scanf("%d", &n);            // reads "42\n" — consumes "42", leaves "\n"
+fgets(buf, sizeof(buf), stdin);   // immediately reads the leftover "\n"
+
+// fix: consume the newline:
 scanf("%d", &n);
-fgets(str, sizeof(str), stdin);   // reads the leftover '\n', not what you want
-// fix:
-scanf("%d", &n);
-getchar();                         // consume the leftover newline
-fgets(str, sizeof(str), stdin);   // NOW reads actual input
+getchar();                  // consume '\n'
+fgets(buf, sizeof(buf), stdin);   // now reads actual next line
+
+// or use:
+scanf(" %49[^\n]", buf);   // the leading space skips whitespace including '\n'
 ```
 
-**off-by-one in loops:**
-```c
-char str[] = "hello";
-for (int i = 0; i <= strlen(str); i++) { }  // i=5 accesses '\0', i=6 is out of bounds
-for (int i = 0; i < strlen(str); i++) { }   // correct
-// also: cache strlen, don't call it every iteration
-size_t len = strlen(str);
-for (size_t i = 0; i < len; i++) { }
-```
+### Returning Pointer to Local
 
-**returning a pointer to a local variable:**
 ```c
-int *bad(void) {
-    int x = 42;
-    return &x;     // x dies when function returns — dangling pointer
+int *wrong(void) {
+    int local = 42;
+    return &local;   // local is on the stack frame, which is destroyed on return
 }
+// using the returned pointer = undefined behavior
 
-int *good(void) {
-    int *p = malloc(sizeof(int));
-    *p = 42;
-    return p;      // heap memory persists — caller frees it
+int *correct(void) {
+    int *heap = malloc(sizeof(int));
+    *heap = 42;
+    return heap;   // heap memory persists, caller must free
 }
 ```
 
-**signed integer overflow:**
-```c
-int x = INT_MAX;
-x++;   // undefined behavior. in practice wraps to INT_MIN but you can't rely on it
-       // signed overflow is NOT defined. use unsigned if you need wrapping.
-```
+### strncpy Doesn't Guarantee Null Termination
 
-**not null-terminating strings:**
 ```c
 char buf[5];
-strncpy(buf, "hello", 5);    // copies 5 chars but NO room for \0 — not terminated
-buf[4] = '\0';               // manual fix
-// or just use snprintf — always null-terminates
-snprintf(buf, sizeof(buf), "%s", "hello");
+strncpy(buf, "hello", 5);   // copies 5 chars — NO room for '\0'
+printf("%s\n", buf);         // reads past buf until it finds a '\0' — UB
+
+// fix: always null-terminate manually, or use snprintf:
+snprintf(buf, sizeof(buf), "%s", "hello");   // always null-terminates
 ```
 
-**realloc gotcha:**
+### Modifying String Literals
+
 ```c
-p = realloc(p, new_size);    // if this fails, p is NULL and original is LEAKED
-// correct:
-void *tmp = realloc(p, new_size);
-if (!tmp) { free(p); return NULL; }
-p = tmp;
+char *s = "hello";
+s[0] = 'H';    // crash — string literal is read-only
+
+char s[] = "hello";  // copy into writable array
+s[0] = 'H';    // fine
+```
+
+### Signed Integer Overflow
+
+```c
+int x = INT_MAX;
+x++;             // UNDEFINED BEHAVIOR for signed types
+                 // unsigned overflow is defined (wraps), signed is not
+
+unsigned int y = UINT_MAX;
+y++;             // 0 — defined wraparound for unsigned
 ```
 
 ---
@@ -1967,100 +3273,134 @@ p = tmp;
 
 ### GDB
 
-compile with `-g` first:
+compile with `-g` to include debug symbols:
 ```bash
-gcc -g -Wall -o program program.c
+gcc -g -Wall -std=c17 -o program program.c
 gdb ./program
 ```
 
-useful commands:
+essential GDB commands:
 ```
-run                — start the program
-break main         — breakpoint at main
-break filename.c:42 — breakpoint at line 42
-next               — next line (don't step into functions)
-step               — next line (step INTO functions)
-print x            — print variable x
-print *ptr         — print value pointer points to
-print arr[0]       — print array element
-info locals        — print all local variables
-backtrace          — show call stack (great after a crash)
-continue           — run until next breakpoint
-watch x            — pause when x changes value
-quit               — exit
+run [args]           — start the program
+break main           — set breakpoint at main function
+break file.c:42      — set breakpoint at line 42 of file.c
+break function_name  — set breakpoint at start of function
+next (n)             — execute next line (don't step into functions)
+step (s)             — execute next line (step INTO functions)
+finish               — run until current function returns
+continue (c)         — resume until next breakpoint
+print x              — print value of variable x
+print *ptr           — print value pointed to by ptr
+print arr[0]         — print array element
+print arr[0]@5       — print 5 elements starting at arr[0]
+info locals          — print all local variables in current frame
+backtrace (bt)       — show call stack (excellent after crashes)
+up / down            — move up/down in the call stack to see other frames
+watch x              — pause when x's value changes
+display x            — print x's value on every step
+set x = 5            — modify variable while debugging
+x/10xw 0x7fff0000    — examine 10 hex words at address
+quit                 — exit gdb
 ```
+
+**after a crash:** run the program in gdb, let it crash, then type `backtrace` to see exactly where it crashed and what the call stack looked like. usually tells you immediately what went wrong.
 
 ### AddressSanitizer + UBSan
-
-best combo for catching memory bugs AND undefined behavior:
 
 ```bash
 gcc -fsanitize=address,undefined -g -o program program.c
 ./program
 ```
 
-catches: heap overflow, stack overflow, use-after-free, memory leaks, null dereference, signed overflow, invalid array index. run this on every project during development.
+detects at runtime: heap overflow, stack overflow, use-after-free, use-after-return, double free, memory leaks, null dereference, signed overflow, invalid array index, misaligned access.
+
+when triggered, prints: the error type, the line it occurred on, the allocation site (for memory bugs), and a full stack trace. use this on every project during development.
 
 ### Valgrind
 
-slower but more thorough leak detection:
 ```bash
-valgrind --leak-check=full --show-leak-kinds=all ./program
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./program
 ```
+
+slower than ASan but more thorough for leak detection. `--track-origins` shows where uninitialized values came from.
 
 ### printf Debugging
 
-sometimes you just need to print stuff to figure out what's going on:
+sometimes the fastest way:
 
 ```c
 #define DBG(fmt, ...) \
-    fprintf(stderr, "[DBG %s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+    fprintf(stderr, "[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
-DBG("x = %d", x);
-DBG("entering loop, n = %zu", n);
+DBG("entering loop with n=%d", n);
+DBG("ptr = %p, *ptr = %d", (void*)ptr, *ptr);
 ```
 
-`stderr` keeps debug output separate from normal output so they don't mix when you redirect.
+write to `stderr` not `stdout` — keeps debug output separate from normal output, and `stderr` is unbuffered so it always appears even if the program crashes before stdout flushes.
+
+### Checking for Memory Bugs Without Tools
+
+read your code and ask:
+1. for every `malloc`/`calloc`/`realloc` — is there a corresponding `free`? on every code path?
+2. after every `free` — is the pointer set to NULL or never used again?
+3. for every array access — can the index be out of bounds?
+4. for every pointer dereference — can the pointer be NULL here?
+5. for every function that returns a pointer — is the return value checked for NULL?
 
 ---
 
 ## Questions
 
-try to answer these before looking at the answers section at the bottom. actually try. the ones that trip you up are the most useful.
+try to answer these before scrolling to the answers.
 
 ---
 
-**Q1:**
+**Q1:** what's the difference between these two declarations, and what's the danger in one of them?
+```c
+char s1[] = "Hello";
+char *s2  = "Hello";
+```
+
+---
+
+**Q2:** what does this print?
 ```c
 int a = 5, b = 2;
-printf("%d\n",   a / b);
-printf("%.2f\n", (float)a / b);
-printf("%.2f\n", (float)(a / b));
+printf("%d\n",    a / b);
+printf("%.2f\n",  (float)a / b);
+printf("%.2f\n",  (float)(a / b));
 ```
-what does each line print and why?
 
 ---
 
-**Q2:**
+**Q3:** what's wrong here? what exactly happens at runtime?
 ```c
-char *s = "Hello";
-s[0] = 'h';
+int *get_value(void) {
+    int local = 42;
+    return &local;
+}
+
+int main(void) {
+    int *p = get_value();
+    printf("%d\n", *p);
+    return 0;
+}
 ```
-what happens when you run this?
 
 ---
 
-**Q3:**
+**Q4:** explain what pointer arithmetic actually does at the byte level.
 ```c
 int arr[] = {10, 20, 30, 40, 50};
-int *p = arr + 2;
-printf("%d %d %d\n", *(p-1), *p, *(p+1));
+int *p = arr;
+p++;
+printf("%d\n", *p);
 ```
-what's the output?
+what is the numeric change in the address stored in p?
 
 ---
 
-**Q4:** find every bug:
+**Q5:** find every bug in this code:
 ```c
 int main(void) {
     int *arr = malloc(10 * sizeof(int));
@@ -2074,144 +3414,16 @@ int main(void) {
 
 ---
 
-**Q5:**
+**Q6:** what does this print? why might it print something different on a different platform?
 ```c
-int i = 0;
-printf("%d %d %d\n", i++, i++, i++);
-```
-what does this print?
-
----
-
-**Q6:** why doesn't this swap work? how do you fix it?
-```c
-void swap(int a, int b) {
-    int temp = a;
-    a = b;
-    b = temp;
-}
-
-int x = 5, y = 10;
-swap(x, y);
-// x and y are unchanged after this
+printf("%zu\n", sizeof(int));
+printf("%zu\n", sizeof(long));
+printf("%zu\n", sizeof(void*));
 ```
 
 ---
 
-**Q7:**
-```c
-unsigned int x = 1;
-printf("%u\n", x - 2);
-```
-what prints and why?
-
----
-
-**Q8:** will this compile? what happens at runtime?
-```c
-int *get_num(void) {
-    int x = 42;
-    return &x;
-}
-
-int main(void) {
-    int *p = get_num();
-    printf("%d\n", *p);
-    return 0;
-}
-```
-
----
-
-**Q9:** how many bytes does this struct take? why?
-```c
-typedef struct {
-    char   a;
-    int    b;
-    char   c;
-    double d;
-} S;
-printf("%zu\n", sizeof(S));
-```
-
----
-
-**Q10:** what's the difference?
-```c
-const int *p;
-int * const p;
-```
-
----
-
-**Q11:**
-```c
-char s1[] = "hello";
-char s2[] = "hello";
-printf("%d\n", s1 == s2);
-printf("%d\n", strcmp(s1, s2) == 0);
-```
-what does each line print and why?
-
----
-
-**Q12:**
-```c
-void count(void) {
-    static int n = 0;
-    printf("%d\n", ++n);
-}
-count(); count(); count();
-```
-what prints?
-
----
-
-**Q13:** what are the two bugs in this realloc call?
-```c
-int *p = malloc(10 * sizeof(int));
-p = realloc(p, 20 * sizeof(int));
-if (p == NULL) {
-    free(p);
-}
-```
-
----
-
-**Q14:** what happens when you run this?
-```c
-char buf[10];
-strcpy(buf, "hello");
-strcat(buf, " world");
-printf("%s\n", buf);
-```
-
----
-
-**Q15:** what does `_Generic` actually do at compile time vs runtime?
-```c
-#define type_name(x) _Generic((x), \
-    int: "int",                     \
-    float: "float",                 \
-    double: "double",               \
-    default: "other"                \
-)
-printf("%s\n", type_name(42));
-printf("%s\n", type_name(3.14));
-```
-
----
-
-**Q16:** what's wrong with this string code?
-```c
-char buf[6];
-strncpy(buf, "hello!", 6);
-printf("%s\n", buf);
-```
-
----
-
-**Q17:** what does this print?
+**Q7:** what is the output?
 ```c
 int x = 10;
 if (x = 0) {
@@ -2224,7 +3436,124 @@ printf("x is now: %d\n", x);
 
 ---
 
-**Q18:** write a function that reads an entire file into a heap-allocated buffer. the caller is responsible for freeing it. handle all error cases.
+**Q8:** what's wrong with this loop?
+```c
+for (int i = 0; i < strlen(str); i++) {
+    process(str[i]);
+}
+```
+
+---
+
+**Q9:** explain why this swap function doesn't work, and fix it:
+```c
+void swap(int a, int b) {
+    int temp = a;
+    a = b;
+    b = temp;
+}
+```
+
+---
+
+**Q10:** what is undefined behavior? give three specific examples from C code. why is it dangerous specifically with optimization enabled?
+
+---
+
+**Q11:** what does the following print, and why is the behavior of one of the lines technically undefined?
+```c
+unsigned int x = 0;
+x--;
+printf("%u\n", x);
+
+int y = INT_MAX;
+y++;
+printf("%d\n", y);
+```
+
+---
+
+**Q12:** what is the difference between the stack and the heap? for each one: what's stored there, who manages it, and what are the size limits?
+
+---
+
+**Q13:** what happens when you call `free(NULL)`?
+
+---
+
+**Q14:** what's wrong with this realloc usage?
+```c
+int *arr = malloc(10 * sizeof(int));
+arr = realloc(arr, 20 * sizeof(int));
+if (arr == NULL) {
+    fprintf(stderr, "realloc failed\n");
+}
+```
+
+---
+
+**Q15:** explain struct padding. how many bytes does this struct take and why?
+```c
+typedef struct {
+    char   a;
+    int    b;
+    char   c;
+    double d;
+} S;
+```
+
+---
+
+**Q16:** what's the difference between `const int *p`, `int * const p`, and `const int * const p`?
+
+---
+
+**Q17:** what does `static` mean when applied to (a) a local variable inside a function, (b) a function at file scope, (c) a global variable at file scope?
+
+---
+
+**Q18:** what's the output?
+```c
+#include <stdio.h>
+
+int counter = 0;
+
+void increment(void) {
+    static int local_count = 0;
+    local_count++;
+    counter++;
+    printf("local=%d global=%d\n", local_count, counter);
+}
+
+int main(void) {
+    increment();
+    increment();
+    increment();
+    return 0;
+}
+```
+
+---
+
+**Q19:** why does this not compare strings correctly? how do you fix it?
+```c
+char s1[] = "hello";
+char s2[] = "hello";
+
+if (s1 == s2) {
+    printf("equal\n");
+} else {
+    printf("not equal\n");
+}
+```
+
+---
+
+**Q20:** what is RAII and why doesn't standard C have it? how do C programmers handle the same problem?
+
+---
+
+**Q21:** write a function `char *str_repeat(const char *s, int n)` that returns a newly-allocated string containing `s` repeated `n` times. the caller is responsible for freeing. handle all error cases.
 
 ---
 
@@ -2235,144 +3564,280 @@ printf("x is now: %d\n", x);
 ---
 
 **A1:**
-line 1 prints `2`. integer division — `5 / 2` is `2` in C, decimal thrown away.
-line 2 prints `2.50`. casting `a` to float *before* dividing forces float division: `5.0 / 2 = 2.5`.
-line 3 prints `2.00` — the trap. `(a / b)` happens *first* as integer division (= 2), THEN gets cast to float (= 2.0). the truncation already happened, the cast doesn't undo it. order of operations matters.
+`char s1[] = "Hello"` — creates an array on the stack. the string literal is copied into the array at program startup. the array is writable. `s1[0] = 'h'` works fine.
+
+`char *s2 = "Hello"` — creates a pointer that points to the string literal in the program's read-only data segment. the pointer itself is writable (you can make s2 point elsewhere), but the characters it points to are not. `s2[0] = 'h'` is undefined behavior — typically a segfault because the OS protects read-only pages. always use `const char *` for pointers to string literals.
 
 ---
 
 **A2:**
-segfault, probably. string literals are stored in read-only memory. `s` is a pointer to a literal, not a writable array. writing to `s[0]` is undefined behavior — typically a crash. fix: `char s[] = "Hello";` — this copies the literal into a writable stack array.
+line 1: `2`. integer division — `5 / 2` = 2 with remainder 1, decimal discarded.
+
+line 2: `2.50`. `(float)a` converts `a` to a float *before* the division. the division then happens as float/int, which promotes int to float, giving 2.5.
+
+line 3: `2.00` — the trap. `(a / b)` is evaluated first as integer division (= 2), then the result 2 is cast to float (= 2.0). the fractional part was already lost before the cast. the order of operations kills you here.
 
 ---
 
 **A3:**
-`20 30 40`. `arr + 2` points to index 2 (value 30). `p - 1` points to index 1 (20). `p + 1` points to index 3 (40).
+`local` is a variable on `get_value`'s stack frame. when `get_value` returns, its stack frame is popped — the memory that `local` occupied is reclaimed and can be used by the next function call. the returned pointer `p` now points to this reclaimed memory. dereferencing `*p` is use-after-scope — undefined behavior. in practice, it might print 42 (the stack hasn't been overwritten yet), it might print garbage, or it might crash. the fix: either allocate `local` on the heap with `malloc` and return that pointer (caller frees it), declare `local` as `static` (it then lives for the entire program), or restructure to avoid returning a pointer to a local.
 
 ---
 
 **A4:**
-three bugs: (1) off-by-one — `i <= 10` writes `arr[10]` which is out of bounds (indices 0-9). fix: `i < 10`. (2) no NULL check after malloc — if malloc fails, `arr[i]` crashes immediately. (3) no `free(arr)` — memory leak.
+`p` starts pointing to `arr[0]`. `p++` is pointer arithmetic. since `p` is an `int*` and `sizeof(int) == 4`, `p++` adds 4 bytes to the address stored in p. if `arr[0]` was at address 0x100, `p` now holds 0x104 — pointing to `arr[1]`. dereferencing `*p` gives 20. pointer arithmetic always scales by `sizeof` the pointed-to type, automatically. this is why pointer type matters: a `char*` increment moves 1 byte, an `int*` moves 4, a `double*` moves 8.
 
 ---
 
 **A5:**
-undefined behavior. the C standard does not specify the order function arguments are evaluated. you might get `0 1 2`, `2 1 0`, or something else entirely — depends on the compiler and platform. modifying and reading the same variable multiple times in one expression without a sequence point between is always UB. never do this.
+three bugs:
+1. **off-by-one overflow**: `i <= 10` writes `arr[10]` — but the array has indices 0-9. index 10 is out of bounds, undefined behavior (heap buffer overflow). fix: `i < 10`.
+2. **missing NULL check after malloc**: if malloc fails (returns NULL), the loop immediately crashes dereferencing NULL. fix: `if (arr == NULL) { fprintf(stderr, "malloc failed\n"); return 1; }` after the malloc.
+3. **memory leak**: `free(arr)` is never called. the 40 bytes allocated are never returned to the heap. fix: add `free(arr);` before `return 0`.
 
 ---
 
 **A6:**
-C passes arguments by value. `swap` gets copies of x and y. modifying the copies doesn't touch the originals. fix with pointers:
+typical output on a 64-bit Linux/Mac system:
+```
+4
+8
+8
+```
+
+but it's platform-dependent:
+- `sizeof(int)` is typically 4 on both 32-bit and 64-bit systems, but the C standard only guarantees at least 16 bits
+- `sizeof(long)` is 4 on Windows (even 64-bit), 8 on Linux/Mac 64-bit
+- `sizeof(void*)` is 4 on 32-bit systems, 8 on 64-bit systems — this tells you the pointer size, i.e., the address space width
+
+this is why `<stdint.h>` exists — to write portable code that doesn't depend on these platform-specific sizes.
+
+---
+
+**A7:**
+prints "nonzero", then "x is now: 0". `x = 0` inside the if condition is an assignment, not a comparison. it assigns 0 to x, then the condition evaluates to 0 (zero is false), so the `else` branch runs. x is now 0. `-Wall` would warn: "suggest parentheses around assignment used as truth value". the correct code would be `if (x == 0)`.
+
+---
+
+**A8:**
+`strlen(str)` is called on every iteration. strlen scans the entire string to find `\0` — it's O(n). calling it n times makes the loop O(n²). for a 1000-character string, that's 1,000 strlen calls each scanning up to 1000 chars — potentially 1,000,000 operations instead of 1000. fix: cache the length: `size_t len = strlen(str); for (size_t i = 0; i < len; i++) { ... }`.
+
+---
+
+**A9:**
+C passes arguments by value. `swap` receives copies of `a` and `b`. swapping the copies has no effect on the caller's variables. fix using pointers:
+
 ```c
 void swap(int *a, int *b) {
     int temp = *a;
     *a = *b;
     *b = temp;
 }
-swap(&x, &y);
+
+// call as:
+int x = 5, y = 10;
+swap(&x, &y);   // pass addresses
+printf("%d %d\n", x, y);   // 10 5
 ```
-
----
-
-**A7:**
-prints `4294967295` (or whatever `UINT_MAX` is on your system, usually that). `x` is unsigned. `1 - 2` mathematically = -1, but unsigned integers can't be negative — they wrap around. -1 in unsigned is `UINT_MAX`. this is defined behavior for unsigned (unlike signed overflow). use `%u` to print unsigned values correctly.
-
----
-
-**A8:**
-compiles, usually with a warning about returning address of a local variable. at runtime: `x` is a local variable on `get_num`'s stack frame. when the function returns, that stack frame is deallocated. `p` now points to invalid memory — a dangling pointer. dereferencing it is undefined behavior. it might print 42 if the memory hasn't been overwritten yet, or garbage, or crash. fix: either allocate on the heap (`malloc`) and return that, or take a pointer parameter to write into, or make `x` static.
-
----
-
-**A9:**
-probably 24 bytes, not 14. the compiler adds padding so each field starts at an aligned address. `a` (char, 1 byte), then 3 bytes padding so `b` (int) starts at offset 4, `b` (int, 4 bytes) at offset 4, `c` (char, 1 byte) at offset 8, then 7 bytes padding so `d` (double) starts at offset 16 (divisible by 8), `d` (double, 8 bytes) at offset 16. total: 24. reordering to put double first reduces this to 16.
 
 ---
 
 **A10:**
-completely different things. `const int *p` — pointer to const int — you CAN reassign `p` to point somewhere else, but CANNOT modify `*p`. `int * const p` — const pointer to int — you CANNOT reassign `p`, but CAN modify `*p`. read right-to-left: "p is a [pointer to] [const int]" vs "p is a [const pointer] to [int]".
+undefined behavior (UB) means the C standard makes no promise about what the program does. it can produce any result or no result. it's dangerous specifically with optimization because the compiler is allowed to assume UB never occurs, and uses this assumption to eliminate "dead code". a bounds check that would prevent UB might be removed as "unnecessary" because UB can't happen (the compiler thinks). three examples:
+
+```c
+int x = INT_MAX;
+x++;   // signed overflow — UB
+
+int arr[5];
+arr[5] = 0;   // out-of-bounds write — UB
+
+int *p = NULL;
+*p = 5;   // null dereference — UB
+```
+
+with `-O2`, code like `if (x + 1 < x)` might be completely eliminated because signed overflow is UB and the compiler assumes it never happens — so the condition "can never be true".
 
 ---
 
 **A11:**
-first line prints `0`. second line prints `1`. `s1 == s2` compares memory addresses — s1 and s2 are two different arrays at different locations, so their addresses are different, and the comparison is false. `strcmp(s1, s2)` compares the actual character contents and returns 0 if identical — correct. never use `==` to compare strings in C.
+first line (`x--`): `x` is `unsigned int` starting at 0. subtracting 1 from an unsigned integer wraps around (defined behavior for unsigned). `0 - 1 = UINT_MAX`. prints `4294967295` (or whatever UINT_MAX is on your system, typically this for 32-bit unsigned int).
+
+second line (`y++`): `y = INT_MAX + 1` is signed integer overflow — undefined behavior. the standard makes no promise. in practice on two's complement machines (all modern ones), it wraps to INT_MIN (-2147483648 for 32-bit). but you cannot rely on this. a compiler with `-O2` might remove checks that assume this overflow happens.
 
 ---
 
 **A12:**
-prints 1, then 2, then 3. `n` is a static local variable — it persists between calls and is only initialized to 0 once. each call increments it and prints the new value.
+**stack:** stores local variables, function parameters, return addresses, saved register values. managed automatically — space is allocated when a function is called, freed when it returns. fixed size (typically 1-8 MB set by the OS). very fast (just moving a pointer). accessing beyond its limits causes a stack overflow.
+
+**heap:** stores dynamically allocated memory (malloc/calloc/realloc). managed manually — you call malloc to allocate, free to release. limited only by available RAM (and virtual memory). slower than stack (allocator has to find free blocks, maintain metadata). leaks if you forget to free. enables objects that outlive function calls.
 
 ---
 
 **A13:**
-two bugs. (1) if `realloc` fails it returns NULL but does NOT free the original allocation. `p = realloc(p, ...)` — if it returns NULL, you've lost the only reference to the original block. memory leaked. (2) `free(p)` where `p` is NULL is technically safe (freeing NULL is a no-op), but you're still leaking the original. fix: `void *tmp = realloc(p, new_size); if (!tmp) { free(p); return; } p = tmp;`
+it's a no-op. `free(NULL)` is explicitly defined in the C standard to do nothing. this is intentional — it means you can safely call `free` on a pointer without first checking if it's NULL. common pattern:
+
+```c
+void cleanup(Resource *r) {
+    free(r->buffer);   // fine even if buffer was never allocated (is NULL)
+    free(r->name);
+    free(r);
+}
+```
+
+no need for `if (r->buffer) free(r->buffer)` — just call free directly.
 
 ---
 
 **A14:**
-buffer overflow. `buf` is 10 bytes. after `strcpy(buf, "hello")` it holds 6 bytes (5 chars + null). `strcat(buf, " world")` tries to append 7 more bytes — that's 12 bytes total, 2 past the end of the buffer. undefined behavior, likely corrupts adjacent memory or crashes. fix: make `buf` bigger, or use `strncat`/`snprintf`.
+two bugs. first: if `realloc` fails, it returns NULL but does NOT free the original pointer. by doing `arr = realloc(arr, ...)`, if it returns NULL, `arr` is now NULL — the original allocation is leaked. the only pointer to it is gone. second: after the check `if (arr == NULL)`, the error is printed but execution continues with a NULL `arr` — any subsequent use of `arr` is a null dereference crash. fix:
 
----
-
-**A15:**
-purely compile-time. `_Generic` (C11) examines the type of the expression at compile time and selects one branch. the other branches don't exist in the compiled binary — they're not even compiled. `type_name(42)` → the compiler sees `int`, selects `"int"`, done. `type_name(3.14)` → 3.14 without a suffix is `double`, so selects `"double"`. this is zero-cost type dispatch.
-
----
-
-**A16:**
-the string "hello!" is 6 characters plus a null terminator = 7 bytes total. `strncpy(buf, "hello!", 6)` copies exactly 6 characters and fills the buffer completely — with NO room for `\0`. `buf` is not null-terminated. `printf("%s\n", buf)` reads past the end of the buffer until it hits a zero byte somewhere in memory — undefined behavior, could print garbage, could crash. fix: `char buf[7]` or copy fewer chars and manually set `buf[5] = '\0'`, or use `snprintf(buf, sizeof(buf), "%s", "hello!")`.
-
----
-
-**A17:**
-prints "nonzero", then "x is now: 0". `x = 0` in the condition is an assignment, not a comparison. it assigns 0 to x, then evaluates to 0, which is falsy, so the else branch runs. x is now 0. this is almost always a bug — you meant `if (x == 0)`. `-Wall` warns about this.
-
----
-
-**A18:**
 ```c
-#include <stdio.h>
-#include <stdlib.h>
-
-char *read_file(const char *path, size_t *out_size) {
-    if (!path) return NULL;
-    
-    FILE *fp = fopen(path, "rb");
-    if (!fp) return NULL;
-    
-    // get file size
-    if (fseek(fp, 0, SEEK_END) != 0) { fclose(fp); return NULL; }
-    long size = ftell(fp);
-    if (size < 0) { fclose(fp); return NULL; }
-    rewind(fp);
-    
-    // allocate buffer (+1 for null terminator, useful for text)
-    char *buf = malloc((size_t)size + 1);
-    if (!buf) { fclose(fp); return NULL; }
-    
-    // read all at once
-    size_t read = fread(buf, 1, (size_t)size, fp);
-    fclose(fp);
-    
-    if (read != (size_t)size) { free(buf); return NULL; }
-    
-    buf[size] = '\0';
-    if (out_size) *out_size = (size_t)size;
-    return buf;   // caller must free()
+int *tmp = realloc(arr, 20 * sizeof(int));
+if (tmp == NULL) {
+    fprintf(stderr, "realloc failed\n");
+    free(arr);   // still responsible for original
+    return -1;   // or handle the error
 }
-
-// usage:
-// size_t len;
-// char *contents = read_file("myfile.txt", &len);
-// if (!contents) { perror("read_file"); exit(1); }
-// printf("%s", contents);
-// free(contents);
+arr = tmp;   // only update arr on success
 ```
 
 ---
 
-*that's actually everything. variables, pointers, memory, modern C all the way to C23, bit manipulation, debugging, the works.*
+**A15:**
+probably 24 bytes. the compiler inserts padding to ensure each member is aligned to its natural alignment:
+- `char a` (1 byte) at offset 0
+- 3 bytes padding — so `int b` (4 bytes) starts at offset 4 (divisible by 4)
+- `int b` (4 bytes) at offset 4
+- `char c` (1 byte) at offset 8
+- 7 bytes padding — so `double d` (8 bytes) starts at offset 16 (divisible by 8)
+- `double d` (8 bytes) at offset 16
+- total struct size: 24. the struct size is also padded to be a multiple of its largest alignment requirement (8), so 24 works.
 
-*no cap though — reading this is maybe 20% of learning C. the other 80% is building stuff, screwing it up, running asan, reading the error, fixing it, and doing it again. build a linked list. implement malloc (yes, actually do it). write a simple HTTP server. break things on purpose. use valgrind. understand why it broke.*
+reordering to `double d; int b; char a; char c;` gives 16 bytes — put large types first to minimize padding.
 
-*C is honest with you in a way most languages aren't. when it crashes it's your fault, and figuring out why teaches you more than any tutorial. GL man*
+---
+
+**A16:**
+`const int *p` — pointer to const int. you CAN change `p` to point to a different int. you CANNOT modify the int it points to through `p`. read right-to-left: "p is a [pointer to] [const int]".
+
+`int * const p` — const pointer to int. you CANNOT change `p` to point elsewhere. you CAN modify the int it points to. "p is a [const pointer] to [int]".
+
+`const int * const p` — const pointer to const int. you can change neither `p` itself nor the int it points to.
+
+---
+
+**A17:**
+three completely different meanings:
+
+(a) `static` local variable: the variable has static *storage duration* — it's initialized once (at program start) and retains its value between function calls. it exists for the entire lifetime of the program, not just when the function is running.
+
+(b) `static` function: the function has *internal linkage* — it's only visible within the current translation unit (`.c` file). other files cannot call it even if they try to declare it. used to hide implementation details.
+
+(c) `static` global variable: same as (b) — internal linkage. the variable is only visible within the current file. without `static`, a global variable has *external linkage* and can be accessed from other files with `extern`.
+
+---
+
+**A18:**
+```
+local=1 global=1
+local=2 global=2
+local=3 global=3
+```
+
+`local_count` is a static local variable. it's initialized to 0 once and retains its value between calls — it increments from 1 to 2 to 3. `counter` is a global variable, also shared across all calls — also goes 1, 2, 3. both start at 0, both increment by 1 each call, both reach 3.
+
+---
+
+**A19:**
+`s1 == s2` compares the *addresses* of the two arrays, not their contents. `s1` and `s2` are two different arrays at two different memory locations. the addresses are different, so the comparison is false — it prints "not equal" even though both contain "hello". in C, an array name decays to a pointer to its first element. so `s1 == s2` is comparing two pointers. to compare string contents, use `strcmp`:
+
+```c
+if (strcmp(s1, s2) == 0) {
+    printf("equal\n");
+}
+```
+
+---
+
+**A20:**
+RAII (Resource Acquisition Is Initialization) is a C++ pattern where resources are tied to object lifetimes — acquired in the constructor, released in the destructor. since destructors run automatically when objects go out of scope, cleanup is guaranteed and exception-safe. C doesn't have destructors, so RAII isn't directly available.
+
+C programmers handle this with:
+1. **discipline** — manually tracking every resource, ensuring every code path calls cleanup
+2. **goto cleanup** — jump to a cleanup block at the end of the function that frees everything
+3. **wrapper patterns** — function pairs like `thing_create`/`thing_destroy` and strict conventions about calling them
+4. **tools** — Valgrind and AddressSanitizer to catch leaks and use-after-free
+
+```c
+int process(const char *path) {
+    FILE *fp = NULL;
+    char *buf = NULL;
+    int result = -1;
+
+    fp = fopen(path, "r");
+    if (!fp) goto cleanup;
+
+    buf = malloc(BUFFER_SIZE);
+    if (!buf) goto cleanup;
+
+    // ... work ...
+    result = 0;
+
+cleanup:
+    free(buf);        // free(NULL) is safe
+    if (fp) fclose(fp);
+    return result;
+}
+```
+
+---
+
+**A21:**
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char *str_repeat(const char *s, int n) {
+    if (s == NULL || n < 0) return NULL;
+    if (n == 0) {
+        char *empty = malloc(1);
+        if (empty) empty[0] = '\0';
+        return empty;
+    }
+
+    size_t slen = strlen(s);
+    size_t total = slen * (size_t)n;
+
+    // check for overflow — slen * n might overflow size_t
+    if (slen != 0 && total / slen != (size_t)n) return NULL;
+
+    char *result = malloc(total + 1);   // +1 for null terminator
+    if (result == NULL) return NULL;
+
+    char *ptr = result;
+    for (int i = 0; i < n; i++) {
+        memcpy(ptr, s, slen);   // copy each repetition
+        ptr += slen;
+    }
+    *ptr = '\0';   // null-terminate
+
+    return result;
+}
+
+// usage:
+// char *repeated = str_repeat("ab", 4);
+// if (repeated) {
+//     printf("%s\n", repeated);   // "abababab"
+//     free(repeated);
+// }
+```
+
+---
+
+*that's C. the full picture — not just the syntax but the memory model, the undefined behavior, the compiler pipeline, everything.*
+
+*reading gets you maybe 20% there. the rest is building things. write a linked list. implement a hash table. build a small arena allocator. write something that reads and parses a binary file. make it crash, run it under asan, fix it. that's where it actually sticks.*
+
+*GL bro*
